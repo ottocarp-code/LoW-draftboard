@@ -17,7 +17,7 @@ import time
 from datetime import datetime
 
 import draft
-from parser import Name
+from parser import SELF_WORDS, Name, normalize
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_VALUES = os.path.join(ROOT, "output", "values.json")
@@ -27,6 +27,11 @@ DEFAULT_DB = os.path.join(ROOT, "data", "draft.db")
 DEFAULT_TEAMS = ["RoRo", "RJ", "Gillese", "sexylexy", "Ceun", "Champximmissioner",
                  "Lode", "Notto", "stijn", "Miele", "elianus", "Dave"]
 DEFAULT_ME = "Notto"
+
+# Team nicknames (`aliases` setting): a few per team, short, never shared.
+MAX_ALIASES, MAX_ALIAS_LEN = 5, 30
+# The voice listener counts as off when its last heartbeat is older than this.
+VOICE_TIMEOUT_S = 10
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS picks(
@@ -138,6 +143,11 @@ class Store:
             self.con.execute("ALTER TABLE picks ADD COLUMN turn_before INTEGER NOT NULL DEFAULT 0")
         self._seed()
         self.con.commit()
+        # Voice listener state lives in memory only (not persisted): the last
+        # voice event, the listener heartbeat and the mute switch.
+        self.clock = time.time
+        self._voice = {"event": None, "seq": 0, "heartbeat": None, "model": None,
+                       "muted": False}
 
     # ---------- settings ----------
     def _get(self, k, default=None):
@@ -187,6 +197,12 @@ class Store:
     def turn_idx(self):
         return int(self._get("turn_idx", 0))
 
+    @property
+    def aliases(self):
+        """{team: [nickname]} for the current teams (every team has a list)."""
+        saved = self._get("aliases") or {}
+        return {t: list(saved.get(t) or []) for t in self.teams}
+
     # ---------- reads ----------
     def picks(self):
         return [dict(r) for r in self.con.execute("SELECT * FROM picks ORDER BY seq")]
@@ -225,6 +241,8 @@ class Store:
                 "picks": picks,
                 "rosters": rosters,
                 "available_count": len(self.pool.by_id.keys() - {p["player_id"] for p in picks}),
+                "aliases": self.aliases,
+                "voice": self.voice_state(),
             }
 
     # ---------- mutations ----------
@@ -314,11 +332,13 @@ class Store:
             ci = draft.resolve_turn(new_idx, order, counts, lg["roster_spots"])
             return order[ci] if ci is not None else None
 
-    def update_settings(self, teams=None, nom_order=None, me=None):
+    def update_settings(self, teams=None, nom_order=None, me=None, aliases=None):
         """
         teams: the full list in display order; position i renames old teams[i]
-        (picks, nomination order and `me` follow the rename).
+        (picks, nomination order, `me` and nicknames follow the rename).
         nom_order: a permutation of the (new) team names. me: one of the teams.
+        aliases: {team: [nickname]} keyed by the (new) team names; teams left out
+        keep their nicknames.
         """
         with self.lock:
             old = self.teams
@@ -342,6 +362,15 @@ class Store:
                 if me not in new:
                     raise draft.DraftError(f'"{me}" is not one of the teams.', 400)
                 cur_me = me
+            nicks = {rename.get(t, t): v for t, v in self.aliases.items()}
+            if aliases is not None:
+                if not isinstance(aliases, dict):
+                    raise draft.DraftError("aliases must be an object {team: [nickname]}.", 400)
+                for t, v in aliases.items():
+                    if t not in new:
+                        raise draft.DraftError(f'Nicknames for unknown team "{t}".', 400)
+                    nicks[t] = v
+            nicks = _clean_aliases(new, nicks)
             # turn_idx and every turn_before are indexes into the order; keep them
             # pointing at the same (resolved) team when the order changes.
             old_order, picks = self.nom_order, self.picks()
@@ -363,6 +392,7 @@ class Store:
                 self._put("teams", new)
                 self._put("nom_order", order)
                 self._put("me", cur_me)
+                self._put("aliases", nicks)
                 self._bump()
 
     def export(self):
@@ -370,7 +400,8 @@ class Store:
             s = self.state()
             return {"exported_at": datetime.now().isoformat(timespec="seconds"),
                     "league": s["league"], "meta": self.pool.meta, "teams": s["teams"],
-                    "me": s["me"], "nom_order": s["nom_order"], "turn_idx": s["turn_idx"],
+                    "me": s["me"], "aliases": s["aliases"],
+                    "nom_order": s["nom_order"], "turn_idx": s["turn_idx"],
                     "on_the_clock": s["on_the_clock"], "picks": s["picks"],
                     "rosters": s["rosters"]}
 
@@ -389,5 +420,110 @@ class Store:
                 self._bump()
             return path, len(data["picks"])
 
+    # ---------- voice listener (in memory, not persisted) ----------
+    def _voice_alive(self):
+        hb = self._voice["heartbeat"]
+        return hb is not None and self.clock() - hb <= VOICE_TIMEOUT_S
+
+    def voice_state(self):
+        v = self._voice
+        alive = self._voice_alive()
+        return {"status": ("muted" if v["muted"] else "listening") if alive else "off",
+                "muted": v["muted"], "model": v["model"],
+                "last_seen": (round(self.clock() - v["heartbeat"], 1)
+                              if v["heartbeat"] is not None else None),
+                "event": v["event"]}
+
+    def _bump_now(self):
+        with self.con:
+            self._bump()
+
+    def voice_heartbeat(self, model=None, muted=None):
+        """Records a listener heartbeat. Returns the mute switch so the listener honours it."""
+        with self.lock:
+            was = self.voice_state()["status"]
+            self._voice["heartbeat"] = self.clock()
+            if model:
+                self._voice["model"] = str(model)[:40]
+            if muted is not None:
+                self._voice["muted"] = bool(muted)
+            if self.voice_state()["status"] != was:
+                self._bump_now()
+            return self._voice["muted"]
+
+    def voice_mute(self, muted):
+        with self.lock:
+            if self._voice["muted"] != bool(muted):
+                self._voice["muted"] = bool(muted)
+                self._bump_now()
+            return self._voice["muted"]
+
+    def voice_event(self, heard, result):
+        """Records the outcome of one voice command, so every screen can show it."""
+        with self.lock:
+            self._voice["seq"] += 1
+            ev = {k: result[k] for k in VOICE_EVENT_FIELDS if k in result}
+            ev.update(id=self._voice["seq"], ts=self.clock(), heard=str(heard or "")[:300],
+                      resolved=None)
+            self._voice["event"] = ev
+            self._bump_now()
+            return ev
+
+    def voice_resolve(self, event_id, message):
+        """A click on some screen settled the pending voice event (candidate, amount, undo)."""
+        with self.lock:
+            ev = self._voice["event"]
+            if not ev or ev["id"] != event_id or ev["resolved"] is not None:
+                return False       # stale, or already settled on some screen
+            ev["resolved"] = str(message or "Done.")[:200]
+            self._bump_now()
+            return True
+
     def close(self):
         self.con.close()
+
+
+VOICE_EVENT_FIELDS = ("kind", "ok", "message", "player", "team", "price", "amount",
+                      "query", "candidates", "count", "picks", "removed")
+
+
+def _clean_aliases(teams, nicks):
+    """
+    Validates {team: [nickname]}: at most MAX_ALIASES per team, 1 to MAX_ALIAS_LEN
+    characters, and no nickname equal to another team's name or nickname (after
+    normalizing), so a nickname never points at two teams.
+    """
+    owner = {normalize(t): t for t in teams}
+    out = {}
+    for t in teams:
+        raw = nicks.get(t) or []
+        if isinstance(raw, str):
+            raw = raw.split(",")
+        if not isinstance(raw, list):
+            raise draft.DraftError(f"Nicknames for {t} must be a list.", 400)
+        clean, seen = [], set()
+        for a in raw:
+            a = str(a).strip()
+            if not a:
+                continue
+            if len(a) > MAX_ALIAS_LEN:
+                raise draft.DraftError(
+                    f'Nickname "{a[:MAX_ALIAS_LEN]}..." is longer than {MAX_ALIAS_LEN} characters.',
+                    400)
+            n = normalize(a)
+            if not n:
+                raise draft.DraftError(f'Nickname "{a}" has no letters or digits.', 400)
+            if n in SELF_WORDS:
+                raise draft.DraftError(f'"{a}" already means "me" and cannot be a nickname.', 400)
+            if n in seen or n == normalize(t):
+                continue
+            other = owner.get(n)
+            if other and other != t:
+                raise draft.DraftError(f'Nickname "{a}" of {t} is already used by {other}.', 400)
+            owner[n] = t
+            seen.add(n)
+            clean.append(a)
+        if len(clean) > MAX_ALIASES:
+            raise draft.DraftError(f"{t} has more than {MAX_ALIASES} nicknames.", 400)
+        out[t] = clean
+    return out

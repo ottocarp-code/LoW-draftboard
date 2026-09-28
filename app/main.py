@@ -17,12 +17,16 @@ Routes (FRD section 8, plus multi-undo and reset):
     POST /api/pick              {player_id, team, price, source}
     POST /api/undo              {} | {count} | {to_seq}
     POST /api/turn              {team} to set, {} or {step: 1} to skip, {step: -1} to go back
-    POST /api/settings          {teams?, nom_order?, me?}
+    POST /api/settings          {teams?, nom_order?, me?, aliases?}  aliases: {team: [nickname]}
+    POST /api/voice/heartbeat   {model, muted?}  from voice/listen.py; returns {muted}
+    POST /api/voice/mute        {muted}          the header mic toggle
+    POST /api/voice/resolve     {id, message}    a click settled the pending voice event
     POST /api/reset             {confirm: "NEW DRAFT"}  backup first, then clear picks
     GET  /api/export            the full state as JSON
     GET  /headshots/{id}.png    local headshot cache, 404 when missing
 """
 
+import json
 import os
 import re
 import sys
@@ -100,9 +104,36 @@ def create_app(db_path=None, values_path=None, headshots=None):
     def command(payload: dict = Body(...)):
         text = str(payload.get("text") or "")[:300]
         source = str(payload.get("source") or "typed")[:16]
+        if source != "voice":
+            return run_command(text, source)
+        with store.lock:
+            if store.voice_state()["muted"]:
+                # The listener honours mute itself; this guards a stale listener.
+                return {"ok": False, "kind": "muted", "message": "Voice is muted."}
+            if cmdparser.parse_command(text)["kind"] == "undo":
+                # Undo of picks is typing or clicking only, never by voice (plan boundary):
+                # a misheard "undo" must not remove a pick.
+                res = fail("Undo picks by typing.", 400)
+            else:
+                res = run_command(text, source)
+            body, status = res, 200
+            if isinstance(res, JSONResponse):
+                body, status = json.loads(res.body), res.status_code
+            body = {k: v for k, v in body.items() if k != "state"}
+            if body["kind"] in ("search", "empty"):
+                body.update(ok=False, kind="error",
+                            message=f'Heard "{text}", but that is not a command.')
+                status = 400
+            ev = store.voice_event(payload.get("heard") or text, body)
+            out = {**body, "voice_event": ev}
+            if isinstance(res, dict) and "state" in res:
+                out["state"] = store.state()          # includes the new voice event
+            return JSONResponse(out, status_code=status)
+
+    def run_command(text, source):
         with store.lock:
             res = cmdparser.interpret(text, store.available(), store.teams, store.me,
-                                      store.pool.league()["budget"])
+                                      store.pool.league()["budget"], store.aliases)
             kind = res["kind"]
 
             if kind == "pick":
@@ -193,7 +224,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
     def turn(payload: dict = Body(default={})):
         payload = payload or {}
         if payload.get("team"):
-            team, _ = cmdparser.match_team(str(payload["team"]), store.teams, store.me)
+            team, _ = cmdparser.match_team(str(payload["team"]), store.teams, store.me,
+                                           store.aliases)
             if payload["team"] in store.teams:
                 team = payload["team"]
             if not team:
@@ -209,10 +241,37 @@ def create_app(db_path=None, values_path=None, headshots=None):
     @app.post("/api/settings")
     def settings(payload: dict = Body(...)):
         try:
-            store.update_settings(payload.get("teams"), payload.get("nom_order"), payload.get("me"))
+            store.update_settings(payload.get("teams"), payload.get("nom_order"), payload.get("me"),
+                                  payload.get("aliases"))
         except DraftError as e:
             return fail(e.message, e.status)
         return ok("settings", "Settings saved.")
+
+    # ---------------------------------------------------------------- voice
+    @app.post("/api/voice/heartbeat")
+    def voice_heartbeat(payload: dict = Body(default={})):
+        payload = payload or {}
+        muted = payload.get("muted")
+        muted = store.voice_heartbeat(payload.get("model"),
+                                      None if muted is None else bool(muted))
+        return {"ok": True, "muted": muted}
+
+    @app.post("/api/voice/mute")
+    def voice_mute(payload: dict = Body(...)):
+        if not isinstance(payload.get("muted"), bool):
+            return fail("muted must be true or false.", 400)
+        store.voice_mute(payload["muted"])
+        return ok("voice", "Voice muted." if payload["muted"] else "Voice on.")
+
+    @app.post("/api/voice/resolve")
+    def voice_resolve(payload: dict = Body(...)):
+        try:
+            eid = int(payload.get("id"))
+        except (TypeError, ValueError):
+            return fail("id must be a whole number.", 400)
+        if not store.voice_resolve(eid, payload.get("message")):
+            return fail("That voice event is already settled or no longer the latest.", 409)
+        return ok("voice", "Voice event settled.")
 
     @app.post("/api/reset")
     def reset(payload: dict = Body(default={})):

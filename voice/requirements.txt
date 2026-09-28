@@ -1,0 +1,5 @@
+# Voice listener only (voice/listen.py, voice/calibrate.py). Kept apart from the
+# app's requirements.txt and from the stdlib-only tool/ scripts (N-4).
+faster-whisper>=1.2,<2
+sounddevice>=0.5
+numpy>=1.26

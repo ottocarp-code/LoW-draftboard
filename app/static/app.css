@@ -155,6 +155,7 @@ td.val{font-weight:650}
 .rcol.me h3{color:var(--me)}
 .rcol h3 small{display:block;font-weight:500;color:var(--muted);font-size:10.5px;
   font-variant-numeric:tabular-nums;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
+.rcol h3 small.mx{color:var(--accent);font-weight:600;margin-top:0}
 .rcol ol{margin:0;padding:0;list-style:none;flex:1;display:flex;flex-direction:column;min-height:0}
 .rcol li{flex:1 1 0;display:flex;align-items:center;justify-content:space-between;gap:5px;
   padding:0 8px;font-size:12px;border-bottom:1px dotted var(--line);min-height:0;overflow:hidden}
@@ -192,3 +193,25 @@ dialog input,dialog select{font:inherit;padding:6px 8px;border:1px solid var(--l
   #history{border-right:0;border-bottom:1px solid var(--line)}
   .cols{grid-template-columns:1fr}
 }
+
+/* ---------- voice: header indicator and the banner every screen shows ---------- */
+button.voice{padding:6px 10px;font-size:12.5px;white-space:nowrap}
+button.voice .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+button.voice.listening .dot{background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
+button.voice.muted .dot{background:var(--warn)}
+button.voice.muted{color:var(--warn)}
+button.voice.off{color:var(--muted)}
+#voicebar{flex:none;margin:0 16px 6px;padding:7px 10px 7px 12px;border:1px solid var(--line);
+  border-left:4px solid var(--muted);border-radius:var(--radius);background:var(--panel);
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+#voicebar.ok{border-left-color:var(--good)} #voicebar.err{border-left-color:var(--bad)}
+#voicebar.ask{border-left-color:var(--warn)}
+#voicebar .vtag{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted)}
+#voicebar .heard{font-style:italic}
+#voicebar .vres{font-weight:600}
+#voicebar .vres.ok{color:var(--good)} #voicebar .vres.err{color:var(--bad)} #voicebar .vres.ask{color:var(--warn)}
+#voicebar button{padding:4px 10px;font-size:13px}
+#voicebar .cand{border-color:var(--warn)}
+#voicebar .cand small{color:var(--muted);font-variant-numeric:tabular-nums}
+#voicebar .x{margin-left:auto;border:0;background:transparent;font-size:18px;padding:0 6px;color:var(--muted)}
+.setlist li.teamrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:6px}

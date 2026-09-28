@@ -1,6 +1,6 @@
 """
 Command parser and name matching. The only place a command is interpreted:
-typed text and (later) the Whisper transcript both arrive at POST /api/command
+typed text and the Whisper transcript (voice/listen.py) both arrive at POST /api/command
 and run through `interpret` (F-30).
 
 Grammar (F-29), English, an optional wake word in front:
@@ -27,9 +27,14 @@ import unicodedata
 # ---------------------------------------------------------------- normalizing
 
 _SUFFIX = re.compile(r"\b(jr|sr|ii|iii|iv)\b")
-_WAKE = re.compile(
-    r"^(?:(?:hey|ok|okay)\s+)?"
-    r"(?:draft\s?bot|low\s?db|low\s?d\s?b|low\s+dee\s+bee|low\s+deebee)\b\s*")
+# The wake word on normalized text ("Low-DB," -> "low db"). voice/wake.py uses the
+# same pattern, so the listener and the parser always agree on what counts as the
+# wake word: low db, lowdb, low d b, low dee bee, lo db, low d bee, draftbot, ...
+WAKE_CORE = (r"(?:draft\s?bot"
+             r"|low?\s?(?:d\s?b|dee\s?bee|d\s?bee|dee\s?b)"
+             r"|low\s?deebee)")
+WAKE_FILLER = r"(?:hey|ok|okay|uh|um|so)"
+_WAKE = re.compile(rf"^(?:{WAKE_FILLER}\s+)*{WAKE_CORE}\b\s*")
 SELF_WORDS = {"me", "mine", "myself", "self", "ik", "mij", "mijn"}
 
 
@@ -245,29 +250,39 @@ def match_player(query, pool, n=6):
     return scored[:n]
 
 
-def match_team(query, teams, me=None):
-    """Returns (team or None, reason)."""
+def _team_score(q, nt):
+    """Score of normalized query q against one normalized team name or nickname."""
+    s = dice(q, nt)
+    if len(q) >= 2 and nt.startswith(q):
+        s = max(s, 0.85)
+    # Nicknames in this league are often anagrams of the real name (Emiel ->
+    # Miele, see data/draft_history.csv 2021 vs 2024), so a letter-for-letter
+    # anagram counts as a strong match.
+    if len(q) >= 4 and sorted(q.replace(" ", "")) == sorted(nt.replace(" ", "")):
+        s = max(s, 0.9)
+    if len(q) >= 4 and soundex(q) == soundex(nt):
+        s = max(s, 0.75)
+    return s
+
+
+def match_team(query, teams, me=None, aliases=None):
+    """
+    Returns (team or None, reason). `aliases` is {team: [nickname]} from the
+    settings: a nickname matches with the same rules as the team name itself
+    (exact, dice, prefix, anagram, soundex), for typed and voice input alike.
+    """
     q = normalize(query)
     if not q:
         return None, "empty"
     if q in SELF_WORDS:
         return me, "me"
+    aliases = aliases or {}
     scored = []
     for t in teams:
-        nt = normalize(t)
-        if q == nt:
-            return t, "exact"
-        s = dice(q, nt)
-        if len(q) >= 2 and nt.startswith(q):
-            s = max(s, 0.85)
-        # Nicknames in this league are often anagrams of the real name (Emiel ->
-        # Miele, see data/draft_history.csv 2021 vs 2024), so a letter-for-letter
-        # anagram counts as a strong match.
-        if len(q) >= 4 and sorted(q.replace(" ", "")) == sorted(nt.replace(" ", "")):
-            s = max(s, 0.9)
-        if len(q) >= 4 and soundex(q) == soundex(nt):
-            s = max(s, 0.75)
-        scored.append((s, t))
+        names = [n for n in [normalize(t)] + [normalize(a) for a in aliases.get(t) or []] if n]
+        if q in names:
+            return t, "exact" if q == names[0] else "alias"
+        scored.append((max(_team_score(q, n) for n in names), t))
     scored.sort(key=lambda x: -x[0])
     if not scored or scored[0][0] < 0.5:
         return None, "unknown"
@@ -331,7 +346,7 @@ def _pick(name, team, amount_text):
             "amount_text": amount_text}
 
 
-def interpret(raw, pool, teams, me, budget):
+def interpret(raw, pool, teams, me, budget, aliases=None):
     """
     Interprets a command against the available pool (list of (player, Name)).
     Always returns a dict with `kind`; on doubt `ambiguous` with candidates, never a guess.
@@ -345,7 +360,7 @@ def interpret(raw, pool, teams, me, budget):
         return cmd
 
     if kind == "turn":
-        team, why = match_team(cmd["team"], teams, me)
+        team, why = match_team(cmd["team"], teams, me, aliases)
         if not team:
             return _team_error(cmd["team"], why, teams)
         return {"kind": "turn", "team": team}
@@ -353,7 +368,7 @@ def interpret(raw, pool, teams, me, budget):
     if kind != "pick":
         return cmd
 
-    team, why = match_team(cmd["team"], teams, me)
+    team, why = match_team(cmd["team"], teams, me, aliases)
     if not team:
         return _team_error(cmd["team"], why, teams)
 

@@ -24,14 +24,18 @@
   </div>
   <button type="button" id="layoutBtn" class="boardonly" title="Switch between cards and list">List</button>
   <button type="button" id="undoBtn" title="Remove the last pick">Undo</button>
+  <button type="button" id="voiceBtn" class="voice off" aria-pressed="false"
+          title="Voice listener (py voice/listen.py). Click to mute or unmute.">
+    <span class="dot" aria-hidden="true"></span><span id="voiceLabel">voice off</span></button>
   <a id="exportBtn" class="btn" href="/api/export" download="low-draft-export.json" title="Download the full state as JSON">Export</a>
-  <button type="button" id="settingsBtn" title="Teams, nomination order, new draft" aria-label="Settings">&#9881;</button>
+  <button type="button" id="settingsBtn" title="Teams, nicknames, nomination order, new draft" aria-label="Settings">&#9881;</button>
 </header>
 
 <div id="msgbar">
   <div id="status" role="status" aria-live="polite"></div>
   <div id="prompt"></div>
 </div>
+<div id="voicebar" hidden aria-live="polite"></div>
 <div id="banner" hidden></div>
 
 <div class="shell">
@@ -85,7 +89,7 @@
     <h3>Settings</h3>
     <div class="cols">
       <div>
-        <h4>Teams <small class="muted">(display order)</small></h4>
+        <h4>Teams <small class="muted">(display order · also called: comma separated, max 5)</small></h4>
         <ol id="setTeams" class="setlist"></ol>
       </div>
       <div>

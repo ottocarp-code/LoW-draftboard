@@ -55,7 +55,7 @@ undo 3                         laatste drie picks terug, na bevestiging
 
 Bedragen mogen cijfers of Engelse getalwoorden zijn. Een voorafgaand `draftbot`
 wordt genegeerd, net als het wake word `low-db` (ook `low db`, `lowdb`,
-`low dee bee`) voor de spraaklaag. `$`, `dollars` en `bucks` mogen voor of na
+`low d b`, `low dee bee`, `lo db`) voor de spraaklaag. `$`, `dollars` en `bucks` mogen voor of na
 het bedrag. Een bedrag boven de max bid wordt geweigerd. Typen filtert het bord
 live mee.
 
@@ -80,6 +80,11 @@ tool/
   fetch_headshots.py  ESPN-foto's lokaal cachen
   parse_history.py    negen jaar draftgeschiedenis uitlezen
   config.json         league-parameters en categorie-toggles
+voice/
+  listen.py      spraaklistener: micro, VAD, Whisper, wake word, naar /api/command
+  calibrate.py   teamnamen inspreken en Whisper-spellingen als bijnaam bewaren
+  wake.py        wake-word-detectie en hotwords (pure functies)
+  requirements.txt  eigen dependencies (faster-whisper, sounddevice, numpy)
 tests/
   fixtures/      make_values.py en values.json: 200 echte namen, gegenereerde stats
   test_*.py      parser, draftregels en API
@@ -114,13 +119,84 @@ twee bevestigingen, de tweede door `NEW DRAFT` te typen. Eerst schrijft de serve
 de volledige stand naar `data/backups/draft-<tijdstip>.json`. Teams, volgorde en
 "me" blijven staan.
 
-De commandoparser staat op de server, niet in de browser. Daardoor komen straks
-het toetsenbord en de Whisper-transcriptie op hetzelfde endpoint binnen
+De commandoparser staat op de server, niet in de browser. Daardoor komen het
+toetsenbord en de Whisper-transcriptie op hetzelfde endpoint binnen
 (`POST /api/command` met een `source`-veld).
 
 De draftstand staat in SQLite (`data/draft.db`), niet in browseropslag, zodat
 ze een herstart midden in de draft overleeft en alle schermen dezelfde waarheid
 zien.
+
+## Spraak
+
+Een aparte listener (`voice/`) luistert op de micro van de app-laptop, transcribeert
+lokaal met Whisper (faster-whisper, CPU, int8) en stuurt enkel zinnen die beginnen
+met het wake word **low-db** naar `POST /api/command` met `source: "voice"`. Het is
+dezelfde parser als de commandobalk. Een duidelijke pick gaat meteen in. Elk
+scherm toont dan een spraakbanner met wat er gehoord is en wat er gebeurde.
+
+```
+low-db steph curry to miele for 55 dollars    pick, meteen opgeslagen
+low-db bridges to rj for 5                    kandidaten in de banner, één klik op eender welk scherm
+low-db sengun to lode                         knop in de banner opent de bedragprompt
+low-db turn dave  /  low-db skip  /  low-db go back
+```
+
+Undo van picks gaat **nooit** met spraak: "low-db undo" haalt niets weg en de
+banner zegt "Undo picks by typing." Typ `undo` of klik. Een reset kan ook niet met
+spraak. Zinnen zonder wake word worden niet verstuurd. Zeg het commando in
+dezelfde adem als "low-db": na een pauze komt de rest binnen als een aparte zin
+zonder wake word, en die wordt genegeerd.
+
+**Installeren** (los van de app, eigen dependencies):
+
+```
+py -m pip install -r voice\requirements.txt
+```
+
+**Eerste run.** De eerste keer downloadt de listener het model van Hugging Face
+(base.en is 145 MB, small.en 484 MB). Daarna laadt hij het uit de lokale cache
+(`local_files_only`) en werkt hij zonder internet. Doe de eerste run dus thuis.
+
+**Kalibreren.** Met de app aan zeg je per team twee keer "low-db curry to <team>
+for ten". Het script toont per model wat Whisper hoorde, hoe lang dat duurde en
+of het wake word herkend werd. Nieuwe spellingen (bv. "amiel" voor Miele) kan je
+meteen als bijnaam opslaan. Die staan daarna in het instellingenpaneel en werken
+ook bij typen.
+
+```
+py voice\calibrate.py                         alle teams, base.en en small.en
+py voice\calibrate.py --teams Miele,Ceun --models base.en
+```
+
+**Draaien**, naast `run.bat`:
+
+```
+py voice\listen.py                            base.en, standaardmicro, http://127.0.0.1:8000
+py voice\listen.py --model small.en           nauwkeuriger, maar trager
+py voice\listen.py --list-devices             micro's oplijsten
+py voice\listen.py --device "Headset"         micro kiezen op index of een stuk van de naam
+```
+
+Elke zin wordt gelogd met zijn latency. Op deze laptop (Core Ultra 7 165U, geen
+GPU) duurde het met synthetische spraak ongeveer 1,6 s van einde zin tot resultaat
+met base.en, en ongeveer 5 s met small.en. De andere schermen zien het bij hun
+volgende poll (maximaal 3 s later).
+
+**In de app.** Rechts in de header staat de spraakindicator: *listening*, *muted*
+of *voice off* (geen heartbeat meer sinds 10 s). Klik erop om te muten of te
+unmuten. Gemute luistert de listener nog, maar stuurt hij niets. Bijnamen per team
+vul je in het instellingenpaneel in, in het veld "also called…" naast de naam
+(komma-gescheiden, max 5 per team, 1 tot 30 tekens). Een bijnaam mag niet de naam
+of bijnaam van een ander team zijn. Bijnamen gelden enkel voor teams, niet voor
+spelers (F-32).
+
+**Microtips.** Gebruik een headset of clip-on micro: in een zaal vol mensen haalt
+de ingebouwde laptopmicro vooral het geroezemoes op. Zeg "low-db" duidelijk en
+zonder haast, en noem het bedrag als laatste ("for 55"). Luistert de listener te
+veel mee, verhoog dan `--threshold` (standaard 0.5). Knipt hij zinnen te vroeg af,
+verhoog dan `--silence-ms` (standaard 400). Werkt de listener niet of crasht hij,
+dan blijft de commandobalk gewoon werken.
 
 ## Categorieën aanpassen
 
@@ -131,6 +207,7 @@ want de league speelt 8-cat.
 
 ## Nog te bouwen
 
-Spraaklaag, marktprijsmodule, tweede projectiebron, prijsmodel op de eigen
+Marktprijsmodule, tweede projectiebron, prijsmodel op de eigen
 draftgeschiedenis, en fase 2 met logins en teampagina's. Zie de tabel met
-openstaande punten onderaan de FRD.
+openstaande punten onderaan de FRD. De spraaklaag staat daar nog als open punt,
+maar is intussen gebouwd (zie Spraak hierboven).

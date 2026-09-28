@@ -54,7 +54,8 @@ function photo(id, name, cls){
 const norm = s => (s||"").normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase()
   .replace(/['’`.]/g,"").replace(/[^a-z0-9]+/g," ").replace(/\b(jr|sr|ii|iii|iv)\b/g," ")
   .replace(/\s+/g," ").trim();
-const WAKE = /^(?:(?:hey|ok|okay)\s+)?(?:draft\s?bot|low\s?db|low\s?d\s?b|low\s+dee\s+bee|low\s+deebee)\b\s*/;
+/* Same wake-word pattern as app/parser.py WAKE_CORE. */
+const WAKE = /^(?:(?:hey|ok|okay|uh|um|so)\s+)*(?:draft\s?bot|low?\s?(?:d\s?b|dee\s?bee|d\s?bee|dee\s?b)|low\s?deebee)\b\s*/;
 function bigrams(s){ const t = " "+s+" ", o = []; for(let i=0;i<t.length-1;i++) o.push(t.slice(i,i+2)); return o; }
 function dice(a,b){
   if(!a || !b) return 0; if(a === b) return 1;
@@ -114,6 +115,7 @@ async function poll(){
     const s = await api("/api/state");
     if(s.players_rev !== PLAYERS_REV) await loadPlayers();
     if(!STATE || s.rev !== STATE.rev || s.players_rev !== STATE.players_rev) applyState(s);
+    else { STATE.voice = s.voice; renderVoice(); }   // "voice off" is time-based, no rev bump
     if($("#status").classList.contains("err") && $("#status").textContent.startsWith("Server unreachable")) say("");
   } catch(e){ /* message already shown */ }
 }
@@ -153,7 +155,7 @@ function handle(res, fromPrompt = false){
   if(res.state) applyState(res.state);
   switch(res.kind){
     case "pick": say(res.message, "ok"); break;
-    case "undo": case "turn": case "settings": case "reset": say(res.message, "ok"); break;
+    case "undo": case "turn": case "settings": case "reset": case "voice": say(res.message, "ok"); break;
     case "need_amount": say(res.message, "ask"); amountPrompt(res.player, res.team); break;
     case "ambiguous": say(res.message, "ask"); candidatePrompt(res.candidates, res.team, res.amount); break;
     case "confirm_undo": confirmUndo(res.picks, {count: res.count}); break;
@@ -181,8 +183,9 @@ function candidatePrompt(cands, team, amount, label){
   box.append(h("button", {type: "button", text: "Cancel", onclick: () => { clearPrompt(); say(""); }}));
 }
 
-/* Amount prompt, pre-filled with player and team; Enter confirms, Escape cancels. */
-function amountPrompt(player, team, amount){
+/* Amount prompt, pre-filled with player and team; Enter confirms, Escape cancels.
+   opts.source is stored with the pick; opts.onDone(res) runs after a stored pick. */
+function amountPrompt(player, team, amount, opts = {}){
   clearPrompt();
   const sel = h("select", {"aria-label": "Team"},
     h("option", {value: "", text: "team…"}),
@@ -195,7 +198,10 @@ function amountPrompt(player, team, amount){
     const price = parseInt(amt.value, 10);
     if(!sel.value){ sel.focus(); return; }
     if(!(price > 0)){ amt.focus(); return; }
-    handle(await api("/api/pick", {player_id: player.id, team: sel.value, price, source: "click"}), true);
+    const res = await api("/api/pick", {player_id: player.id, team: sel.value, price,
+                                        source: opts.source || "click"});
+    handle(res, true);
+    if(res.ok && opts.onDone) opts.onDone(res);
     if(!$("#prompt").children.length) $("#cmd").focus();
   };
   const cancel = () => { clearPrompt(); say(""); $("#cmd").focus(); };
@@ -250,6 +256,76 @@ async function backToHere(seq){
   confirmUndo(res.picks, {to_seq: seq});
 }
 
+/* ---------------------------------------------------------------- voice
+   The listener (voice/listen.py) posts "low-db …" commands with source "voice"; the
+   server keeps the latest result in STATE.voice.event, so this banner shows the same
+   thing on every screen. A pending result (candidates or a missing amount; undo is
+   never done by voice, the server rejects it)
+   can be settled with one click on any screen; that marks it resolved everywhere. */
+let voiceDismissed = null, voiceShown = null;
+
+function renderVoice(){
+  const v = STATE && STATE.voice;
+  if(!v) return;
+  const btn = $("#voiceBtn");
+  btn.className = `voice ${v.status}`;
+  btn.setAttribute("aria-pressed", String(!!v.muted));
+  $("#voiceLabel").textContent = v.status === "off" ? (v.muted ? "voice off (muted)" : "voice off")
+                               : v.status;
+  btn.title = (v.status === "off"
+      ? "Voice listener not running (py voice/listen.py)."
+      : `Voice listener ${v.status}${v.model ? ` · ${v.model}` : ""}.`) +
+    (v.muted ? " Click to unmute." : " Click to mute.");
+  renderVoiceBar(v.event);
+}
+
+/* Marks the event settled on every screen and applies the returned state at once,
+   so the banner drops its buttons here without waiting for the next poll. */
+async function voiceResolve(ev, message){
+  const res = await api("/api/voice/resolve", {id: ev.id, message});
+  if(res.state) applyState(res.state);
+}
+/* Disables the banner's action buttons while a click is in flight (no double pick). */
+const voiceLock = on => { for(const b of $("#voicebar").querySelectorAll("button:not(.x)")) b.disabled = on; };
+
+function renderVoiceBar(ev){
+  const bar = $("#voicebar");
+  if(!ev || ev.id === voiceDismissed){ bar.hidden = true; bar.replaceChildren(); voiceShown = null; return; }
+  const key = `${ev.id}|${ev.resolved || ""}`;
+  if(key === voiceShown) return;             // unchanged: keep buttons and focus as they are
+  voiceShown = key;
+  const pending = !ev.resolved && ["ambiguous", "need_amount"].includes(ev.kind);
+  const cls = ev.resolved || ev.ok ? "ok" : pending ? "ask" : "err";
+  const kids = [h("span", {class: "vtag", text: "Voice"}),
+                h("q", {class: "heard", text: ev.heard || ""}),
+                h("span", {class: `vres ${cls}`, text: ev.resolved ? `Done: ${ev.resolved}` : (ev.message || "")})];
+  if(pending && ev.kind === "ambiguous"){
+    for(const c of ev.candidates || []) kids.push(h("button", {type: "button", class: "cand",
+      onclick: async () => {
+        const done = res => { voiceLock(true); return voiceResolve(ev, res.message); };
+        if(ev.team && ev.amount != null){
+          voiceLock(true);
+          const res = await api("/api/pick", {player_id: c.player.id, team: ev.team, price: ev.amount, source: "voice"});
+          if(res.ok){ handle(res); await done(res); }
+          else { voiceLock(false); amountPrompt(c.player, ev.team, ev.amount, {source: "voice", onDone: done}); handle(res, true); }
+        } else amountPrompt(c.player, ev.team, null, {source: "voice", onDone: done});
+      }}, c.player.name, " ", h("small", {text: `${Math.round(c.score*100)}%`})));
+  }
+  if(pending && ev.kind === "need_amount" && ev.player){
+    kids.push(h("button", {type: "button", class: "primary",
+      text: `Enter amount: ${ev.player.name} → ${ev.team}`,
+      onclick: () => {
+        say(`${ev.player.name} to ${ev.team}: enter the amount.`, "ask");
+        amountPrompt(ev.player, ev.team, null, {source: "voice", onDone: res => { voiceLock(true); return voiceResolve(ev, res.message); }});
+      }}));
+  }
+  kids.push(h("button", {type: "button", class: "x", text: "×", title: "Hide on this screen",
+    "aria-label": "Dismiss", onclick: () => { voiceDismissed = ev.id; renderVoiceBar(ev); }}));
+  bar.className = cls;
+  bar.replaceChildren(...kids);
+  bar.hidden = false;
+}
+
 /* ---------------------------------------------------------------- rendering */
 function render(){
   if(!STATE) return;
@@ -257,6 +333,7 @@ function render(){
   const banner = $("#banner");
   banner.hidden = !STATE.error;
   banner.textContent = STATE.error || "";
+  renderVoice();
   renderHistory();
   if(view === "board"){ renderClock(); renderBudgets(); renderPlayers(); }
   else renderRosters();
@@ -389,7 +466,9 @@ function renderRosters(){
                : h("li", {class: "empty"}, h("span", {class: "pn", text: "empty"}), h("span", {class: "pp", text: "–"}));
     });
     return h("div", {class: `rcol${t.on_clock ? " clock" : ""}${t.is_me ? " me" : ""}`},
-      h("h3", {title: t.name}, t.name, h("small", {text: `$${t.remaining} left · max ${t.max_bid}`})),
+      h("h3", {title: `${t.name}: $${t.remaining} left, max bid $${t.max_bid}`}, t.name,
+        h("small", {text: `$${t.remaining} left`}),
+        h("small", {class: "mx", text: `max $${t.max_bid}`})),
       h("ol", {}, rows));
   }));
   requestAnimationFrame(shortenNames);
@@ -408,15 +487,20 @@ function shortenNames(){
 }
 
 /* ---------------------------------------------------------------- settings */
-let draftTeams = [], draftOrder = [];
+let draftTeams = [], draftOrder = [], draftAliases = [];
 function openSettings(){
   if(!STATE) return;
   draftTeams = STATE.teams.map(t => t.name);
+  draftAliases = draftTeams.map(n => ((STATE.aliases || {})[n] || []).join(", "));
   draftOrder = STATE.nom_order.map(n => draftTeams.indexOf(n)).filter(i => i >= 0);
   $("#settingsErr").textContent = "";
   $("#setTeams").replaceChildren(...draftTeams.map((n, i) =>
-    h("li", {}, h("input", {value: n, maxLength: 40, "aria-label": `Team ${i+1}`,
-      oninput: e => { draftTeams[i] = e.target.value; drawOrder(); drawMe(); }}))));
+    h("li", {class: "teamrow"},
+      h("input", {value: n, maxLength: 40, "aria-label": `Team ${i+1}`,
+        oninput: e => { draftTeams[i] = e.target.value; drawOrder(); drawMe(); }}),
+      h("input", {value: draftAliases[i], maxLength: 160, placeholder: "also called…",
+        "aria-label": `Nicknames of team ${i+1}`, title: "Nicknames, comma separated (max 5, for typing and voice)",
+        oninput: e => { draftAliases[i] = e.target.value; }}))));
   drawOrder();
   drawMe(STATE.me);
   $("#settingsDlg").showModal();
@@ -437,8 +521,10 @@ function drawMe(selectName){
 }
 async function saveSettings(){
   const teams = draftTeams.map(s => s.trim());
+  const aliases = Object.fromEntries(teams.map((t, i) =>
+    [t, draftAliases[i].split(",").map(s => s.trim()).filter(Boolean)]));
   const res = await api("/api/settings", {teams, nom_order: draftOrder.map(i => teams[i]),
-                                          me: teams[$("#setMe").selectedIndex]});
+                                          me: teams[$("#setMe").selectedIndex], aliases});
   if(!res.ok){ $("#settingsErr").textContent = res.message; return; }
   $("#settingsDlg").close();
   handle(res);
@@ -489,6 +575,13 @@ for(const f of document.querySelectorAll("dialog form")) f.addEventListener("sub
 $("#undoBtn").onclick = async () => handle(await api("/api/undo", {count: 1}));
 $("#skipBtn").onclick = async () => handle(await api("/api/turn", {}));
 $("#backBtn").onclick = async () => handle(await api("/api/turn", {step: -1}));
+$("#voiceBtn").onclick = async () => {
+  if(!STATE || !STATE.voice) return;
+  // Not through handle(): that clears the prompt, and an open amount prompt must stay.
+  const res = await api("/api/voice/mute", {muted: !STATE.voice.muted});
+  if(res.state) applyState(res.state);
+  else say(res.message || "Could not change mute.", "err");
+};
 $("#settingsBtn").onclick = openSettings;
 $("#settingsCancel").onclick = () => $("#settingsDlg").close();
 $("#settingsSave").onclick = saveSettings;

@@ -366,3 +366,58 @@ def test_go_back_moves_the_turn_to_the_previous_team(client, text):
 def test_go_back_button_route(client):
     r = client.post("/api/turn", json={"step": -1}).json()
     assert r["ok"] and r["team"] == "Dave"                # RoRo -> wraps to the last team
+
+
+# ---------------------------------------------------------------- team nicknames
+
+def test_nicknames_saved_matched_and_in_state(client):
+    r = client.post("/api/settings", json={"aliases": {"Miele": ["emiel", "Amiel"], "Ceun": "sun, ceune"}})
+    assert r.status_code == 200, r.json()
+    s = r.json()["state"]
+    assert s["aliases"]["Miele"] == ["emiel", "Amiel"] and s["aliases"]["Ceun"] == ["sun", "ceune"]
+    assert s["aliases"]["RJ"] == []
+    assert cmd(client, "curry to amiel for 10").json()["team"] == "Miele"
+    assert client.post("/api/turn", json={"team": "sun"}).json()["team"] == "Ceun"
+    assert client.get("/api/export").json()["aliases"]["Miele"] == ["emiel", "Amiel"]
+
+
+def test_nicknames_follow_a_rename_and_survive_a_restart(make_client, tmp_path):
+    db = tmp_path / "n.db"
+    c = make_client(db=db)
+    c.post("/api/settings", json={"aliases": {"Miele": ["amiel"]}})
+    teams = [("Emiel" if t["name"] == "Miele" else t["name"]) for t in state(c)["teams"]]
+    assert c.post("/api/settings", json={"teams": teams}).json()["ok"]
+    assert state(c)["aliases"]["Emiel"] == ["amiel"] and "Miele" not in state(c)["aliases"]
+    c2 = make_client(db=db)
+    assert state(c2)["aliases"]["Emiel"] == ["amiel"]
+
+
+@pytest.mark.parametrize("aliases,needle", [
+    ({"Miele": ["rj"]}, "already used by RJ"),                    # another team's name
+    ({"Miele": ["Lode"]}, "already used by Lode"),
+    ({"Miele": ["zon"], "Ceun": ["ZON"]}, "already used"),       # two teams, one nickname
+    ({"Miele": ["a", "b", "c", "d", "e", "f"]}, "more than 5"),
+    ({"Miele": ["x" * 31]}, "longer than 30"),
+    ({"Miele": ["!!"]}, "no letters"),
+    ({"Miele": ["me"]}, "means \"me\""),
+    ({"Nobody": ["x"]}, "unknown team"),
+    (["emiel"], "must be an object"),
+])
+def test_nickname_validation(client, aliases, needle):
+    before = state(client)["aliases"]
+    r = client.post("/api/settings", json={"aliases": aliases})
+    assert r.status_code == 400 and needle.lower() in r.json()["message"].lower()
+    assert state(client)["aliases"] == before
+
+
+def test_rename_onto_a_nickname_is_rejected(client):
+    client.post("/api/settings", json={"aliases": {"Miele": ["amiel"]}})
+    teams = [("amiel" if t["name"] == "RJ" else t["name"]) for t in state(client)["teams"]]
+    r = client.post("/api/settings", json={"teams": teams})
+    assert r.status_code == 400 and "already used" in r.json()["message"]
+    assert "RJ" in [t["name"] for t in state(client)["teams"]]
+
+
+def test_nicknames_are_deduplicated(client):
+    r = client.post("/api/settings", json={"aliases": {"Miele": ["amiel", "Amiel", " ", "Miele"]}})
+    assert r.json()["state"]["aliases"]["Miele"] == ["amiel"]

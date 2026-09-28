@@ -168,3 +168,45 @@ def test_zero_fractions_still_work(pool, text, amount):
 
 def test_decimal_message_shows_the_amount(pool):
     assert '"2.5"' in run("jokic to rj for 2.5", pool)["message"]
+
+
+# ---------------------------------------------------------------- team nicknames
+
+ALIASES = {"Miele": ["emiel", "amiel"], "Ceun": ["sun", "ceune"], "Gillese": ["gillis"]}
+
+
+@pytest.mark.parametrize("q,team,why", [
+    ("amiel", "Miele", "alias"), ("AMIEL", "Miele", "alias"), ("sun", "Ceun", "alias"),
+    ("gillis", "Gillese", "alias"), ("miele", "Miele", "exact"),
+    ("amiell", "Miele", "match"),      # fuzzy on a nickname, same rules as team names
+    ("gilis", "Gillese", "match"),
+])
+def test_team_nicknames(q, team, why):
+    assert P.match_team(q, TEAMS, "Notto", ALIASES) == (team, why)
+
+
+def test_nicknames_work_in_commands(pool):
+    r = P.interpret("low-db curry to amiel for 10", pool, TEAMS, "Notto", 200, ALIASES)
+    assert r["kind"] == "pick" and r["team"] == "Miele" and r["amount"] == 10
+    r = P.interpret("turn sun", pool, TEAMS, "Notto", 200, ALIASES)
+    assert r == {"kind": "turn", "team": "Ceun"}
+    # without nicknames "sun" is no team
+    assert P.interpret("turn sun", pool, TEAMS, "Notto", 200)["kind"] == "error"
+
+
+def test_players_have_no_alias_table(pool):
+    # Nicknames are for teams only (F-32): a team nickname never becomes a player.
+    r = P.interpret("amiel to rj for 5", pool, TEAMS, "Notto", 200, ALIASES)
+    assert r["kind"] != "pick" or "amiel" not in P.normalize(r["player"]["name"])
+
+
+@pytest.mark.parametrize("wake", ["lo db", "low d bee", "lodb", "uh low-db", "okay lowdb"])
+def test_more_wake_variants_are_stripped(wake):
+    cmd = P.parse_command(f"{wake} sengun to lode for 12")
+    assert cmd["kind"] == "pick" and cmd["name"] == "sengun" and cmd["amount"] == 12
+
+
+@pytest.mark.parametrize("text", ["lowe to rj for 5", "lodge to lode for 5"])
+def test_wake_does_not_eat_names(text):
+    cmd = P.parse_command(text)
+    assert cmd["kind"] == "pick" and cmd["name"] == text.split(" to ")[0]

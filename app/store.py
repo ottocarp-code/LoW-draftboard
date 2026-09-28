@@ -296,12 +296,17 @@ class Store:
                 self._bump()
             return team
 
-    def skip(self):
+    def skip(self, back=False):
+        """Moves the turn to the next team, or with back=True to the previous one."""
         with self.lock:
             lg = self.pool.league()
             counts = draft.counts_of(self.teams, self.picks())
-            new_idx = draft.advance_turn(self.turn_idx, self.nom_order, counts, counts,
-                                         lg["roster_spots"])
+            if back:
+                new_idx = draft.retreat_turn(self.turn_idx, self.nom_order, counts,
+                                             lg["roster_spots"])
+            else:
+                new_idx = draft.advance_turn(self.turn_idx, self.nom_order, counts, counts,
+                                             lg["roster_spots"])
             with self.con:
                 self._put("turn_idx", new_idx)
                 self._bump()

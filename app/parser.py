@@ -11,6 +11,7 @@ Grammar (F-29), English, an optional wake word in front:
     <player> to <team>                   (no amount -> amount prompt)
     turn <team>
     skip
+    go back                              (turn to the previous team; also: back, previous)
     undo [N]
 
 Wake words `draftbot` and `low-db` (plus transcription variants) are stripped.
@@ -294,6 +295,8 @@ def parse_command(raw):
 
     if t in ("skip", "pass", "next", "volgende"):
         return {"kind": "skip"}
+    if t in ("go back", "back", "previous", "prev", "vorige"):
+        return {"kind": "back"}
 
     m = re.match(r"^(?:turn|clock|nominate|beurt)\s+(?:to\s+|is\s+)?(.+)$", t)
     if m:

@@ -352,3 +352,17 @@ def test_skip_when_every_roster_is_full(client):
     r = cmd(client, "skip").json()
     assert r["ok"] and r["message"] == "Every roster is full." and "None" not in r["message"]
     assert client.post("/api/turn", json={}).json()["message"] == "Every roster is full."
+
+
+@pytest.mark.parametrize("text", ["go back", "back", "previous", "low-db go back"])
+def test_go_back_moves_the_turn_to_the_previous_team(client, text):
+    cmd(client, "turn lode")
+    r = cmd(client, text).json()
+    assert r["ok"] and r["team"] == "Champximmissioner"
+    assert r["state"]["on_the_clock"] == "Champximmissioner"
+    assert cmd(client, "skip").json()["team"] == "Lode"
+
+
+def test_go_back_button_route(client):
+    r = client.post("/api/turn", json={"step": -1}).json()
+    assert r["ok"] and r["team"] == "Dave"                # RoRo -> wraps to the last team

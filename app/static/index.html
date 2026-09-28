@@ -13,7 +13,7 @@
   <img src="/static/logo.png" alt="League of Wildcards" class="logo">
   <h1>Draftboard</h1>
   <input id="cmd" autocomplete="off" spellcheck="false" aria-label="Command"
-         placeholder="derozan to emiel for 13   ·   jokic mine 40   ·   turn roro   ·   skip   ·   undo">
+         placeholder="derozan to emiel for 13   ·   jokic mine 40   ·   turn roro   ·   skip   ·   go back   ·   undo">
   <div class="seg" id="viewSeg" role="group" aria-label="View">
     <button type="button" data-view="board" aria-pressed="true">Board</button>
     <button type="button" data-view="teams" aria-pressed="false">Teams</button>
@@ -46,6 +46,7 @@
         <span class="flabel">Nominating</span>
         <strong id="clockTeam">–</strong>
         <span id="clockMeta" class="muted"></span>
+        <button type="button" id="backBtn" class="ghost" title="Move the turn back to the previous team">Back</button>
         <button type="button" id="skipBtn" class="ghost" title="Move the turn to the next team">Skip</button>
         <span class="spacer"></span>
         <span id="availCount" class="flabel"></span>

@@ -1,4 +1,4 @@
-<img src="docs/img/logo.png" width="64" align="right" alt="League of Wildcards">
+﻿<img src="docs/img/logo.png" width="64" align="right" alt="League of Wildcards">
 
 # League of Wildcards Draftboard
 
@@ -47,6 +47,7 @@ derozan to emiel for 13        pick toewijzen
 wembanyama to roro for eighty five
 turn roro                      beurt handmatig zetten
 skip                           beurt doorschuiven
+go back                        beurt terug naar het vorige team
 sengun mine 12                 pick voor jezelf ("me" in de instellingen)
 undo                           laatste pick terug
 undo 3                         laatste drie picks terug, na bevestiging

@@ -94,6 +94,21 @@ def advance_turn(turn_idx, order, counts_before, counts_after, spots):
     return nxt if nxt is not None else (cur + 1) % n
 
 
+def retreat_turn(turn_idx, order, counts, spots):
+    """The opposite of a skip: the turn goes to the previous team that is not full."""
+    n = len(order)
+    if n == 0:
+        return 0
+    cur = resolve_turn(turn_idx, order, counts, spots)
+    if cur is None:
+        return turn_idx % n
+    for k in range(1, n):
+        i = (cur - k) % n
+        if counts.get(order[i], 0) < spots:
+            return i
+    return cur
+
+
 def counts_of(teams, picks):
     c = {t: 0 for t in teams}
     for p in picks:

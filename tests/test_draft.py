@@ -76,3 +76,13 @@ def test_advance_uses_counts_before_the_pick():
 def test_advance_when_everyone_is_full():
     counts = {t: 13 for t in T}
     assert D.advance_turn(2, T, counts, counts, 13) == 2
+
+
+def test_retreat_is_the_opposite_of_skip():
+    counts = {"A": 0, "B": 13, "C": 0, "D": 0}
+    assert D.retreat_turn(3, T, counts, 13) == 2          # D -> C
+    assert D.retreat_turn(2, T, counts, 13) == 0          # C -> A, skipping full B
+    assert D.retreat_turn(0, T, counts, 13) == 3          # wraps: A -> D
+    idx = D.advance_turn(0, T, counts, counts, 13)        # A -> C
+    assert D.retreat_turn(idx, T, counts, 13) == 0        # back to A
+    assert D.retreat_turn(1, T, {t: 13 for t in T}, 13) == 1

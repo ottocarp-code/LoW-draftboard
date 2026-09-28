@@ -82,7 +82,7 @@ function score(q, k){
 /* The part before to/mine/for is the name, so the board filters mid-command. */
 function nameFragment(raw){
   let t = norm(String(raw||"").replace(/\$/g," ")).replace(WAKE,"").trim();
-  if(/^(undo|skip|turn|clock|nominate|pass|next)\b/.test(t)) return "";
+  if(/^(undo|skip|turn|clock|nominate|pass|next|go back|back|previous|prev)\b/.test(t)) return "";
   return t.split(/\s+(?:to|mine|for|at)(?:\s+|$)/)[0].trim();
 }
 
@@ -488,6 +488,7 @@ cmd.addEventListener("keydown", async e => {
 for(const f of document.querySelectorAll("dialog form")) f.addEventListener("submit", e => e.preventDefault());
 $("#undoBtn").onclick = async () => handle(await api("/api/undo", {count: 1}));
 $("#skipBtn").onclick = async () => handle(await api("/api/turn", {}));
+$("#backBtn").onclick = async () => handle(await api("/api/turn", {step: -1}));
 $("#settingsBtn").onclick = openSettings;
 $("#settingsCancel").onclick = () => $("#settingsDlg").close();
 $("#settingsSave").onclick = saveSettings;

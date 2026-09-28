@@ -16,7 +16,7 @@ Routes (FRD section 8, plus multi-undo and reset):
     POST /api/command           {text, source}  free text through the parser
     POST /api/pick              {player_id, team, price, source}
     POST /api/undo              {} | {count} | {to_seq}
-    POST /api/turn              {team} to set, {} or {step: 1} to skip
+    POST /api/turn              {team} to set, {} or {step: 1} to skip, {step: -1} to go back
     POST /api/settings          {teams?, nom_order?, me?}
     POST /api/reset             {confirm: "NEW DRAFT"}  backup first, then clear picks
     GET  /api/export            the full state as JSON
@@ -131,8 +131,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
                         "picks": removed,
                         "message": f'Undo the last {res["count"]} picks?'}
 
-            if kind == "skip":
-                team = store.skip()
+            if kind in ("skip", "back"):
+                team = store.skip(back=kind == "back")
                 return ok("turn", f"Turn to {team}." if team else "Every roster is full.", team=team)
 
             if kind == "turn":
@@ -203,7 +203,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
             except DraftError as e:
                 return fail(e.message, e.status)
             return ok("turn", f"Turn set to {team}.", team=team)
-        team = store.skip()
+        team = store.skip(back=str(payload.get("step", 1)) == "-1")
         return ok("turn", f"Turn to {team}." if team else "Every roster is full.", team=team)
 
     @app.post("/api/settings")

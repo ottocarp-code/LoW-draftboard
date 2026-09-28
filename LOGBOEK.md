@@ -14,3 +14,7 @@
 - **Checks:** 118 tests zijn groen. Een scripted browsertest op twee vensters slaagde (30 checks). Na de review bleven er 5 fixes over: de beurt na een nieuwe nominatievolgorde, decimale bedragen, de bedragprompt die openblijft, "Turn to None" en "back to here" met het toetsenbord. 5 bevindingen zijn afgewezen, met redenen in de triage log van het plan.
 - **Keuze:** "emiel" matcht "Miele" via de anagramregel voor teamnamen (in 2021 heette het team Emiel). Echte bijnamen per team komen in het spraakplan.
 - **Aanpassingen:** De nieuwe `app/` bestaat uit store, draft, parser, main en een static frontend. Verder: `tool/names.py`, `tests/` met een fixture, en README en `run.bat` zijn bijgewerkt. De oude code staat in `_legacy/app/`. Het plan heeft status `built`.
+
+## 2026-09-28 — Git
+
+- De repo is lokaal aangemaakt met het persoonlijke e-mailadres (enkel voor deze repo) en een eerste commit (`bf52266`). Remote: `ottocarp-code/LoW-draftboard`. Het pushen wacht tot de GitHub-repo bestaat. Tooling, `_legacy/` en lokale data staan in `.gitignore`.

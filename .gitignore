@@ -1,0 +1,22 @@
+# Local draft state and generated files
+*.db
+*.db-wal
+*.db-shm
+data/backups/
+data/headshots/
+output/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# BMad / Claude tooling
+_bmad/
+_bmad-output/
+.claude/
+.agents/
+skills-lock.json
+
+# Old app (kept locally for reference)
+_legacy/

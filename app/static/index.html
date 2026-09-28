@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>League of Wildcards · Draftboard</title>
+<link rel="icon" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header>
+  <img src="/static/logo.png" alt="League of Wildcards" class="logo">
+  <h1>Draftboard</h1>
+  <input id="cmd" autocomplete="off" spellcheck="false" aria-label="Command"
+         placeholder="derozan to emiel for 13   ·   jokic mine 40   ·   turn roro   ·   skip   ·   undo">
+  <div class="seg" id="viewSeg" role="group" aria-label="View">
+    <button type="button" data-view="board" aria-pressed="true">Board</button>
+    <button type="button" data-view="teams" aria-pressed="false">Teams</button>
+  </div>
+  <div class="seg boardonly" id="sortSeg" role="group" aria-label="Sort">
+    <button type="button" data-sort="espn" aria-pressed="true" title="ESPN rank">ESPN</button>
+    <button type="button" data-sort="value" aria-pressed="false" title="Our value">Value</button>
+  </div>
+  <button type="button" id="layoutBtn" class="boardonly" title="Switch between cards and list">List</button>
+  <button type="button" id="undoBtn" title="Remove the last pick">Undo</button>
+  <a id="exportBtn" class="btn" href="/api/export" download="low-draft-export.json" title="Download the full state as JSON">Export</a>
+  <button type="button" id="settingsBtn" title="Teams, nomination order, new draft" aria-label="Settings">&#9881;</button>
+</header>
+
+<div id="msgbar">
+  <div id="status" role="status" aria-live="polite"></div>
+  <div id="prompt"></div>
+</div>
+<div id="banner" hidden></div>
+
+<div class="shell">
+  <aside id="history">
+    <h2>Picks <span id="pickCount"></span></h2>
+    <ol id="log"></ol>
+  </aside>
+
+  <main class="content">
+    <section id="viewBoard">
+      <div class="clockbar">
+        <span class="flabel">Nominating</span>
+        <strong id="clockTeam">–</strong>
+        <span id="clockMeta" class="muted"></span>
+        <button type="button" id="skipBtn" class="ghost" title="Move the turn to the next team">Skip</button>
+        <span class="spacer"></span>
+        <span id="availCount" class="flabel"></span>
+      </div>
+      <div class="budgets" id="budgets"></div>
+      <div class="panel" id="cardsWrap"><div class="board" id="board"></div></div>
+      <div class="panel" id="listWrap" hidden>
+        <table id="list">
+          <thead><tr><th>ESPN</th><th>Player</th><th>Pos</th><th>Tm</th><th>Value</th>
+            <th>Market</th><th>ADP</th><th>z</th><th>Risk</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="viewTeams" hidden>
+      <div class="grid" id="rosterGrid"></div>
+    </section>
+  </main>
+</div>
+
+<dialog id="confirmDlg">
+  <form method="dialog">
+    <h3 id="confirmTitle"></h3>
+    <div id="confirmBody"></div>
+    <input id="confirmInput" autocomplete="off" spellcheck="false" hidden>
+    <div class="actions">
+      <button type="button" id="confirmCancel">Cancel</button>
+      <button type="button" id="confirmOk" class="primary">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="settingsDlg">
+  <form method="dialog" id="settingsForm">
+    <h3>Settings</h3>
+    <div class="cols">
+      <div>
+        <h4>Teams <small class="muted">(display order)</small></h4>
+        <ol id="setTeams" class="setlist"></ol>
+      </div>
+      <div>
+        <h4>Nomination order</h4>
+        <ol id="setOrder" class="setlist"></ol>
+      </div>
+    </div>
+    <label class="me-row">This is me <select id="setMe"></select></label>
+    <div id="settingsErr" class="err"></div>
+    <div class="actions">
+      <button type="button" id="newDraftBtn" class="danger">New draft…</button>
+      <span class="spacer"></span>
+      <button type="button" id="settingsCancel">Cancel</button>
+      <button type="button" id="settingsSave" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

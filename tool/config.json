@@ -1,0 +1,27 @@
+{
+  "teams": 12,
+  "budget": 200,
+  "roster_spots": 13,
+
+  "_comment_categories": "1 = telt mee, 0 = uitgeschakeld. Zet er een op 0 om een punt-build door te rekenen. Een waarde boven 1 weegt de categorie zwaarder.",
+  "categories": {
+    "PTS": 1,
+    "TPM": 1,
+    "REB": 1,
+    "AST": 1,
+    "STL": 1,
+    "BLK": 1,
+    "FG": 1,
+    "FT": 1,
+    "TO": 0
+  },
+
+  "_comment_pool": "Aantal spelers waarover de Z-scores berekend worden. Jouw sheet stond op 180. Te klein maakt de gemiddeldes te sterk, te groot verwatert ze met spelers die toch niet gedraft worden.",
+  "z_pool": 180,
+
+  "_comment_min_gp": "Spelers met minder geprojecteerde wedstrijden vallen uit de pool (langdurig geblesseerd).",
+  "min_gp": 25,
+
+  "_comment_anchor": "Bron die gebruikt wordt om ontbrekende FGA/FTA bij andere bronnen te reconstrueren.",
+  "anchor_source": "espn"
+}

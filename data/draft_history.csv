@@ -1,0 +1,1457 @@
+year,team,name,price
+2025,RoRo,Shai Gilgeous-Alexander,73.0
+2025,RoRo,Devin Booker,39.0
+2025,RoRo,LaMelo Ball,28.0
+2025,RoRo,Jalen Brunson,27.0
+2025,RoRo,Jarrett Allen,6.0
+2025,RoRo,Naz Reid,5.0
+2025,RoRo,Donovan Clingon,5.0
+2025,RoRo,Cam Whitmore,1.0
+2025,RoRo,John Collins,4.0
+2025,RoRo,Zachharie Risacher,2.0
+2025,RoRo,Nic Claxton,3.0
+2025,RoRo,Jabari Smith Jr.,2.0
+2025,RoRo,Jaden McDaniels,3.0
+2025,RJ,Trae Young,49.0
+2025,RJ,Anthony Davis,45.0
+2025,RJ,Chet Holmgren,31.0
+2025,RJ,Lauri Markkanen,17.0
+2025,RJ,Darius Garland,16.0
+2025,RJ,Payton Pritchard,16.0
+2025,RJ,Brandon Ingram,9.0
+2025,RJ,Zach Edey,4.0
+2025,RJ,Christian Braun,3.0
+2025,RJ,Herbert Jones,7.0
+2025,RJ,De'Andre Hunter,1.0
+2025,RJ,PJ Washington,1.0
+2025,RJ,Kelly Oubre Jr.,1.0
+2025,Gillese,Nikola Jokic,79.0
+2025,Gillese,Franz Wagner,24.0
+2025,Gillese,De'Aaron Fox,19.0
+2025,Gillese,Dyson Daniels,35.0
+2025,Gillese,Toumani Camara,11.0
+2025,Gillese,Walker Kessler,17.0
+2025,Gillese,Norman Powell,5.0
+2025,Gillese,RJ Barrett,3.0
+2025,Gillese,Andrew Wiggins,3.0
+2025,Gillese,Matisse Thybulle,1.0
+2025,Gillese,Davion Mitchell,1.0
+2025,Gillese,Aaron Gordon,1.0
+2025,Gillese,Isaiah Collier,1.0
+2025,sexylexy,Kawhi Leonard,23.0
+2025,sexylexy,Anthony Edwards,50.0
+2025,sexylexy,Domantas Sabonis,34.0
+2025,sexylexy,Paolo Banchero,22.0
+2025,sexylexy,Immanuel Quickley,11.0
+2025,sexylexy,Julius Randle,11.0
+2025,sexylexy,Pascal Siakam,16.0
+2025,sexylexy,Zach LaVine,7.0
+2025,sexylexy,Miles Bridges,11.0
+2025,sexylexy,Khris Middleton,4.0
+2025,sexylexy,Josh Hart,7.0
+2025,sexylexy,Keegan Murray,1.0
+2025,sexylexy,Scoot Henderson,3.0
+2025,Ceun,Joel Embiid,22.0
+2025,Ceun,Giannis Antetokounmpo,62.0
+2025,Ceun,Paul George,14.0
+2025,Ceun,Rudy Gobert,9.0
+2025,Ceun,Ausar Thompson,14.0
+2025,Ceun,Cason Wallace,5.0
+2025,Ceun,Shaedon Sharpe,11.0
+2025,Ceun,Jalen Suggs,7.0
+2025,Ceun,Dereck Lively II,5.0
+2025,Ceun,CJ McCollum,12.0
+2025,Ceun,Mikal Bridges,12.0
+2025,Ceun,Andrew Nembhard,16.0
+2025,Ceun,Kevin Porter Jr.,11.0
+2025,Champximmissioner,Luka Doncic,67.0
+2025,Champximmissioner,Cooper Flagg,29.0
+2025,Champximmissioner,LeBron James,19.0
+2025,Champximmissioner,Austin Reaves,30.0
+2025,Champximmissioner,Alperen Sengun,29.0
+2025,Champximmissioner,DeAndre Ayton,12.0
+2025,Champximmissioner,Tobias Harris,5.0
+2025,Champximmissioner,D'Angelo Russell,2.0
+2025,Champximmissioner,Keyonte George,2.0
+2025,Champximmissioner,Bilal Coulibaly,1.0
+2025,Champximmissioner,Quentin Grimes,1.0
+2025,Champximmissioner,Nikola Jovic,2.0
+2025,Champximmissioner,Jonathan Kuminga,1.0
+2025,Lode,Amen Thompson,34.0
+2025,Lode,Jalen Johnson,31.0
+2025,Lode,OG Anunoby,23.0
+2025,Lode,Jaylen Brown,20.0
+2025,Lode,Evan Mobley,34.0
+2025,Lode,Desmond Bane,20.0
+2025,Lode,Isaiah Hartenstein,8.0
+2025,Lode,Kel'el Ware,10.0
+2025,Lode,Ty Jerome,5.0
+2025,Lode,Aaron Nesmith,1.0
+2025,Lode,Stephon Castle,3.0
+2025,Lode,Ace Bailey,8.0
+2025,Lode,Dylan Harper,3.0
+2025,Notto,James Harden,41.0
+2025,Notto,Stephen Curry,41.0
+2025,Notto,Jakob Poeltl,18.0
+2025,Notto,Brandon Miller,21.0
+2025,Notto,Jalen Duren,24.0
+2025,Notto,Matas Buzelis,17.0
+2025,Notto,Anfernee Simons,8.0
+2025,Notto,Alexandre Sarr,7.0
+2025,Notto,Onyeka Okongwu,6.0
+2025,Notto,Tari Eason,5.0
+2025,Notto,DeMar Derozan,10.0
+2025,Notto,Jaden Ivey,1.0
+2025,Notto,Malik Monk,1.0
+2025,stijn,Josh Giddey,34.0
+2025,stijn,Kevin Durant,42.0
+2025,stijn,Donovan Mitchell,35.0
+2025,stijn,Jaren Jackson Jr.,23.0
+2025,stijn,Jordan Poole,11.0
+2025,stijn,Devin Vassell,5.0
+2025,stijn,Scottie Barnes,30.0
+2025,stijn,Draymond Green,5.0
+2025,stijn,Benedict Mathurin,3.0
+2025,stijn,Donte DiVicenzo,3.0
+2025,stijn,Kyshawn George,4.0
+2025,stijn,Scotty Pippen Jr.,3.0
+2025,stijn,Brice Sensabaugh,2.0
+2025,Miele,Derrick White,32.0
+2025,Miele,Karl-Anthony Towns,40.0
+2025,Miele,Jamal Murray,23.0
+2025,Miele,Bam Adebayo,23.0
+2025,Miele,Jimmy Butler,18.0
+2025,Miele,Myles Turner,18.0
+2025,Miele,Deni Avdija,15.0
+2025,Miele,Cam Johnson,8.0
+2025,Miele,Nikola Vucevic,10.0
+2025,Miele,Jrue Holiday,6.0
+2025,Miele,Bradley Beal,5.0
+2025,Miele,Jaylen Wells,1.0
+2025,Miele,Neemias Queta,1.0
+2025,elianus,Cade Cunningham,51.0
+2025,elianus,Zion Williamson,24.0
+2025,elianus,Kristaps Porzingis,18.0
+2025,elianus,Tyrese Maxey,38.0
+2025,elianus,Ja Morant,26.0
+2025,elianus,Tyler Herro,15.0
+2025,elianus,Mark Williams,8.0
+2025,elianus,Reed Sheppard,13.0
+2025,elianus,Kon Knueppel,1.0
+2025,elianus,Tre Johnson,1.0
+2025,elianus,Bobby Portis,1.0
+2025,elianus,Daniel Gafford,2.0
+2025,elianus,Grayson Allen,2.0
+2025,Dave,Victor Wembanyama,85.0
+2025,Dave,Coby White,21.0
+2025,Dave,Trey Murphy III,19.0
+2025,Dave,MAGA Porter Jr.,10.0
+2025,Dave,Jalen Williams,27.0
+2025,Dave,Ivica Zubac,15.0
+2025,Dave,Jalen Green,5.0
+2025,Dave,Cam Thomas,6.0
+2025,Dave,Kyrie Irving,1.0
+2025,Dave,Brandin Podziemski,1.0
+2025,Dave,Jay Huff,3.0
+2025,Dave,VJ Edgecombe,2.0
+2025,Dave,Mitchell Robinson,5.0
+2024,RoRo,Karl-Anthony Towns,45.0
+2024,RoRo,Kevin Durant,40.0
+2024,RoRo,Jayson Tatum,43.0
+2024,RoRo,Bam Adebayo,21.0
+2024,RoRo,Darius Garland,17.0
+2024,RoRo,Tyler Herro,7.0
+2024,RoRo,Amen Thompson,6.0
+2024,RoRo,Kyle Kuzma,7.0
+2024,RoRo,Jonas Valanciunas,5.0
+2024,RoRo,Klay Thompson,3.0
+2024,RoRo,Naz Reid,1.0
+2024,RoRo,Jalen Green,2.0
+2024,RoRo,Ayo Dosunmu,1.0
+2024,RJ,Nikola Jokic,74.0
+2024,RJ,Scottie Barnes,36.0
+2024,RJ,Tyrese Haliburton,49.0
+2024,RJ,Mark Williams,6.0
+2024,RJ,Rudy Gobert,15.0
+2024,RJ,Draymond Green,7.0
+2024,RJ,Brandon Podziemski,2.0
+2024,RJ,Michael Porter Jr.,4.0
+2024,RJ,Nikola Jovic,1.0
+2024,RJ,Mike Conley,2.0
+2024,RJ,Andrew Wiggins,1.0
+2024,RJ,Shaedon Sharpe,1.0
+2024,RJ,Keldon Johnson,1.0
+2024,cveck,Chet Holmgren,38.0
+2024,cveck,Lauri Markkanen,31.0
+2024,cveck,Paul George,37.0
+2024,cveck,James Harden,41.0
+2024,cveck,Cam Thomas,15.0
+2024,cveck,Trey Murphy III,11.0
+2024,cveck,Jrue Holiday,10.0
+2024,cveck,Coby White,7.0
+2024,cveck,Marcus Smart,2.0
+2024,cveck,Brook Lopez,1.0
+2024,cveck,De'Anthony Melton,4.0
+2024,cveck,Keon Ellis,1.0
+2024,cveck,Malik Monk,1.0
+2024,sexylexy,LaMelo Ball,44.0
+2024,sexylexy,Devin Booker,32.0
+2024,sexylexy,Jimmy Butler,20.0
+2024,sexylexy,Franz Wagner,18.0
+2024,sexylexy,OG Anunoby,15.0
+2024,sexylexy,Evan Mobley,27.0
+2024,sexylexy,Brandon Miller,14.0
+2024,sexylexy,Jalen Duren,14.0
+2024,sexylexy,Brandon Ingram,11.0
+2024,sexylexy,Jusuf Nurkic,1.0
+2024,sexylexy,PJ Washington,1.0
+2024,sexylexy,Jonathan Isaac,1.0
+2024,sexylexy,Gary Trent Jr.,1.0
+2024,Ceun,LeBron James,42.0
+2024,Ceun,Giannis Antetokounmpo,53.0
+2024,Ceun,Dejounte Murray,25.0
+2024,Ceun,Zion Williamson,29.0
+2024,Ceun,Pascal Siakam,14.0
+2024,Ceun,Austin Reaves,7.0
+2024,Ceun,Nicolas Claxton,10.0
+2024,Ceun,Jakob Poeltl,10.0
+2024,Ceun,Russell Westbrook,1.0
+2024,Ceun,Dyson Daniels,5.0
+2024,Ceun,Clint Capela,1.0
+2024,Ceun,Aaron Gordon,1.0
+2024,Ceun,Tari Eason,1.0
+2024,maxim,Trae Young,49.0
+2024,maxim,Donovan Mitchell,39.0
+2024,maxim,Jaren Jackson Jr.,24.0
+2024,maxim,Anfernee Simons,13.0
+2024,maxim,Mikal Bridges,18.0
+2024,maxim,Zach LaVine,12.0
+2024,maxim,D'Angelo Russell,9.0
+2024,maxim,Jordan Poole,17.0
+2024,maxim,Nikola Vucevic,9.0
+2024,maxim,Chris Paul,6.0
+2024,maxim,John Collins,1.0
+2024,maxim,Wendell Carter Jr.,1.0
+2024,maxim,Zaccharia Risacher,1.0
+2024,Lode,Anthony Edwards,38.0
+2024,Lode,De'Aaron Fox,33.0
+2024,Lode,Domantas Sabonis,41.0
+2024,Lode,Tyrese Maxey,25.0
+2024,Lode,Paolo Banchero,16.0
+2024,Lode,Myles Turner,12.0
+2024,Lode,Jalen Suggs,10.0
+2024,Lode,Tyus Jones,5.0
+2024,Lode,Andrew Nembhard,3.0
+2024,Lode,Jabari Smith Jr.,4.0
+2024,Lode,Daniel Gafford,6.0
+2024,Lode,RJ Barrett,2.0
+2024,Lode,Jeremy Sochan,4.0
+2024,Notto,Shai Gilgeous-Alexander,65.0
+2024,Notto,Kawhi Leonard,34.0
+2024,Notto,Ja Morant,21.0
+2024,Notto,Julius Randle,11.0
+2024,Notto,DeMar DeRozan,14.0
+2024,Notto,Bradley Beal,13.0
+2024,Notto,Jarrett Allen,13.0
+2024,Notto,Ben Simmons,3.0
+2024,Notto,Isaiah Hartenstein,9.0
+2024,Notto,Donte DiVincenzo,3.0
+2024,Notto,Josh Hart,3.0
+2024,Notto,Keyonte George,6.0
+2024,Notto,Jerami Grant,4.0
+2024,stijn,Luka Doncic,67.0
+2024,stijn,Jalen Brunson,33.0
+2024,stijn,Jalen Williams,27.0
+2024,stijn,Jalen Johnson,21.0
+2024,stijn,Jaylen Brown,14.0
+2024,stijn,CJ McCollum,10.0
+2024,stijn,Josh Giddey,12.0
+2024,stijn,Ivica Zubac,5.0
+2024,stijn,Terry Rozier,3.0
+2024,stijn,Derrick Lively II,3.0
+2024,stijn,Bilal Coulibaly,1.0
+2024,stijn,Andre Drummond,2.0
+2024,stijn,Norman Powell,1.0
+2024,Miele,Joel Embiid,57.0
+2024,Miele,Kyrie Irving,34.0
+2024,Miele,Cade Cunningham,28.0
+2024,Miele,Desmond Bane,21.0
+2024,Miele,Tobias Harris,12.0
+2024,Miele,Jamal Murray,14.0
+2024,Miele,DeAndre Ayton,14.0
+2024,Miele,Miles Bridges,10.0
+2024,Miele,Bogdan Bogdanovic,5.0
+2024,Miele,Deni Avdija,1.0
+2024,Miele,Al Horford,1.0
+2024,Miele,Vince Williams Jr.,1.0
+2024,Miele,Christian Braun,1.0
+2024,elianus,Victor Wembanyama,74.0
+2024,elianus,Stephen Curry,44.0
+2024,elianus,Kristaps Porzingis,12.0
+2024,elianus,Derrick White,15.0
+2024,elianus,Colin Sexton,10.0
+2024,elianus,Alex Caruso,13.0
+2024,elianus,Devin Vassell,8.0
+2024,elianus,Khris Middleton,6.0
+2024,elianus,Keegan Murray,8.0
+2024,elianus,Herb Jones,6.0
+2024,elianus,Cam Johnson,1.0
+2024,elianus,Trayce-Jackson Davis,1.0
+2024,elianus,Onyeko Okongwu,1.0
+2024,Dave,Anthony Davis,56.0
+2024,Dave,Fred VanVleet,30.0
+2024,Dave,Damian Lillard,33.0
+2024,Dave,Alperen Sengun,26.0
+2024,Dave,Immanuel Quickley,22.0
+2024,Dave,Walker Kessler,6.0
+2024,Dave,Alex Sarr,3.0
+2024,Dave,Jonathan Kuminga,4.0
+2024,Dave,Scoot Henderson,5.0
+2024,Dave,Ausar Thompson,2.0
+2024,Dave,Taylor Hendricks,2.0
+2024,Dave,Jaden Ivey,6.0
+2024,Dave,Zach Edey,4.0
+2023,stomme naam,Jalen Brunson,30.0
+2023,stomme naam,Jalen Brown,24.0
+2023,stomme naam,Bam Adebayo,26.0
+2023,stomme naam,Jimmy Butler,34.0
+2023,stomme naam,Domme Ayton,18.0
+2023,stomme naam,Darius Garland,23.0
+2023,stomme naam,OG Anunoby,18.0
+2023,stomme naam,Wendell Carter Jr,5.0
+2023,stomme naam,Capella,3.0
+2023,stomme naam,Mitch Robinson,5.0
+2023,stomme naam,PJ Washington,4.0
+2023,stomme naam,Gary Trent  Jr.,4.0
+2023,stomme naam,Brandon Miller,5.0
+2023,RJ,Wembie,29.0
+2023,RJ,Holmgren,28.0
+2023,RJ,Irving,38.0
+2023,RJ,Poole,33.0
+2023,RJ,Nic Claxton,19.0
+2023,RJ,JA Morant,13.0
+2023,RJ,DeAron Fox,22.0
+2023,RJ,Draymond Green,5.0
+2023,RJ,Bogdan Bogdanovic,2.0
+2023,RJ,Jalen Green,5.0
+2023,RJ,Huerter,2.0
+2023,RJ,Micic,2.0
+2023,RJ,Sasha Vezenkov,1.0
+2023,cveck,Vucevic,18.0
+2023,cveck,Bane,30.0
+2023,cveck,Young,45.0
+2023,cveck,BroLo,14.0
+2023,cveck,Anfernee Simons,19.0
+2023,cveck,JJJ,31.0
+2023,cveck,Franz Wagner,19.0
+2023,cveck,Zach Collins,4.0
+2023,cveck,Mathurin,5.0
+2023,cveck,S. Bay,5.0
+2023,cveck,Isaac,3.0
+2023,cveck,Quickley,4.0
+2023,cveck,J Clarkson,2.0
+2023,sexylexy,Haliburton,53.0
+2023,sexylexy,Sabonis,34.0
+2023,sexylexy,Edwards,35.0
+2023,sexylexy,Jamal Murray,22.0
+2023,sexylexy,J Allen,13.0
+2023,sexylexy,Cam Johnson,9.0
+2023,sexylexy,Jerami Grant,10.0
+2023,sexylexy,Gobert,8.0
+2023,sexylexy,Wiggens,4.0
+2023,sexylexy,Keegan M.,5.0
+2023,sexylexy,Tillman,2.0
+2023,sexylexy,Coby White,2.0
+2023,sexylexy,Suggs,2.0
+2023,ceun,Simmons,9.0
+2023,ceun,Porzingis,24.0
+2023,ceun,Giannis,56.0
+2023,ceun,Paul George,28.0
+2023,ceun,Markkanen,28.0
+2023,ceun,Zion Williamson,19.0
+2023,ceun,Ingram,16.0
+2023,ceun,Klay Thompson,9.0
+2023,ceun,Kyle Anderson,1.0
+2023,ceun,D-Lo,4.0
+2023,ceun,Zubac,1.0
+2023,ceun,Covington,3.0
+2023,ceun,KCP,1.0
+2023,maxim,Davis,40.0
+2023,maxim,KAT,32.0
+2023,maxim,Mikal Bridges,29.0
+2023,maxim,FVV,27.0
+2023,maxim,Jrue,16.0
+2023,maxim,DeJounte Murray,19.0
+2023,maxim,Scottie Barnes,15.0
+2023,maxim,Reaves,7.0
+2023,maxim,RWIII,6.0
+2023,maxim,Bruce Brown,3.0
+2023,maxim,Caruso,1.0
+2023,maxim,Tre jones,3.0
+2023,maxim,Horford,1.0
+2023,luuds,SGA,59.0
+2023,luuds,Herro,9.0
+2023,luuds,Walker kessler,18.0
+2023,luuds,Cade Cunningham,28.0
+2023,luuds,Thybulle,5.0
+2023,luuds,Siakam,22.0
+2023,luuds,Vassell,13.0
+2023,luuds,Evan Mobley,18.0
+2023,luuds,Toumani Camara,4.0
+2023,luuds,Q. Grimes,3.0
+2023,luuds,Melton,4.0
+2023,luuds,Sochan,6.0
+2023,luuds,Sharpe,10.0
+2023,Neutto,Jokic,72.0
+2023,Neutto,Harden,30.0
+2023,Neutto,Leonard,28.0
+2023,Neutto,Banchero,13.0
+2023,Neutto,Rozier,6.0
+2023,Neutto,Jalen Williams,12.0
+2023,Neutto,smart,6.0
+2023,Neutto,Mark Williams,14.0
+2023,Neutto,Jalen Duren,5.0
+2023,Neutto,Tyus jones,7.0
+2023,Neutto,Toppin,1.0
+2023,Neutto,Patrick Wiliams,2.0
+2023,Neutto,Jaden McDaniels,3.0
+2023,stijn,Tatum,62.0
+2023,stijn,LBJ,29.0
+2023,stijn,Devin Booker,35.0
+2023,stijn,Beal,15.0
+2023,stijn,Derozan,16.0
+2023,stijn,Chris Paul,13.0
+2023,stijn,Middleton,8.0
+2023,stijn,Poetl,13.0
+2023,stijn,LeVert,1.0
+2023,stijn,Valanciunas,4.0
+2023,stijn,Struss,1.0
+2023,stijn,Kispert,1.0
+2023,stijn,Ivey,1.0
+2023,Miele,Embiid,62.0
+2023,Miele,Durant,46.0
+2023,Miele,Donovan Mitchell,38.0
+2023,Miele,Wussel Restbrook,5.0
+2023,Miele,Zach Lavine,21.0
+2023,Miele,Fultz,7.0
+2023,Miele,Conley,3.0
+2023,Miele,Trey Murphy,4.0
+2023,Miele,Hield,6.0
+2023,Miele,Norman Powell,2.0
+2023,Miele,Bojan Bogdanovic,3.0
+2023,Miele,Miles Bridges,1.0
+2023,Miele,Paul Reed,1.0
+2023,elianus,Lamelo,49.0
+2023,elianus,Curry,55.0
+2023,elianus,Onyeka Okongwu,10.0
+2023,elianus,Randle,18.0
+2023,elianus,Josh Giddey,11.0
+2023,elianus,Tobias Harris,5.0
+2023,elianus,Gafford,9.0
+2023,elianus,Henderson,9.0
+2023,elianus,Ausar Thompson,7.0
+2023,elianus,Derrick White,3.0
+2023,elianus,CJ Chuckies,6.0
+2023,elianus,Nurkic,8.0
+2023,elianus,Hart,4.0
+2023,Dave,Doncic,53.0
+2023,Dave,Lillard,51.0
+2023,Dave,Maxey,21.0
+2023,Dave,Turner,20.0
+2023,Dave,Sengun,16.0
+2023,Dave,MPJ,7.0
+2023,Dave,Kuzma,10.0
+2023,Dave,Dinwiddie,6.0
+2023,Dave,Jabari Smith,8.0
+2023,Dave,Derrick Lively II,1.0
+2023,Dave,Amen thompson,1.0
+2023,Dave,Talen Horton-Tucker,1.0
+2023,Dave,Tari Eason,1.0
+2022,Alex,CP3,25.0
+2022,Alex,Giannis,60.0
+2022,Alex,Siakam,27.0
+2022,Alex,Terry Rozier,21.0
+2022,Alex,Devin Vassell,17.0
+2022,Alex,Domantas Sabonis,27.0
+2022,Alex,Wood,8.0
+2022,Alex,Wiggins,4.0
+2022,Alex,Michael Porter Jr.,7.0
+2022,Alex,Brogdon,1.0
+2022,Alex,Aron Gordon,1.0
+2022,Alex,Caruso,1.0
+2022,Alex,Kelly Oubre Jr,1.0
+2022,Otto,Joker,75.0
+2022,Otto,Jrue Holiday,27.0
+2022,Otto,Jalen Brunson,19.0
+2022,Otto,Shai Gilgeous-Alexander,22.0
+2022,Otto,Khris Middleton,19.0
+2022,Otto,Alpro Sengun Minarine,14.0
+2022,Otto,OG Anunoby,11.0
+2022,Otto,Hayward,8.0
+2022,Otto,Jaden McDaniels,1.0
+2022,Otto,Dorian Fonney Smith,1.0
+2022,Otto,Melton,1.0
+2022,Otto,Caleb MArtin,1.0
+2022,Otto,Fultz,1.0
+2022,Damareeck,Lillard,40.0
+2022,Damareeck,Cade,37.0
+2022,Damareeck,Tre J.,7.0
+2022,Damareeck,JA M.,32.0
+2022,Damareeck,Jabari Smith,14.0
+2022,Damareeck,Zion Williamson,28.0
+2022,Damareeck,Keegan Murray,9.0
+2022,Damareeck,Keldon Johnson,8.0
+2022,Damareeck,Jalen Green,8.0
+2022,Damareeck,Kevin Porter Jr,8.0
+2022,Damareeck,Nick Claxton,3.0
+2022,Damareeck,Tari Eason,2.0
+2022,Damareeck,Benedict mathurin,4.0
+2022,Emiel,Booker,41.0
+2022,Emiel,Trae,50.0
+2022,Emiel,Vucevic,21.0
+2022,Emiel,Jakob Poeltl,13.0
+2022,Emiel,Ayton,23.0
+2022,Emiel,Buddy Hield,9.0
+2022,Emiel,Scottie Barnes,18.0
+2022,Emiel,Nurkic,4.0
+2022,Emiel,Herb Jones,6.0
+2022,Emiel,PJ Washington,8.0
+2022,Emiel,Colin Sexton,5.0
+2022,Emiel,Jordan Clarckson,1.0
+2022,Emiel,Kris Duarte,1.0
+2022,Star J - Bubble Champ,Irving,43.0
+2022,Star J - Bubble Champ,Simmons,25.0
+2022,Star J - Bubble Champ,Luka,54.0
+2022,Star J - Bubble Champ,Klay,14.0
+2022,Star J - Bubble Champ,Westbrook,12.0
+2022,Star J - Bubble Champ,Kuminga,4.0
+2022,Star J - Bubble Champ,De'Aaron Fox,20.0
+2022,Star J - Bubble Champ,Jonas Valanciunas,11.0
+2022,Star J - Bubble Champ,Clint Capela,8.0
+2022,Star J - Bubble Champ,Tate,2.0
+2022,Star J - Bubble Champ,Jaren Jackson Junior,5.0
+2022,Star J - Bubble Champ,Thomas Bryant,1.0
+2022,Star J - Bubble Champ,James Wiseman,1.0
+2022,Max,Lebron,37.0
+2022,Max,BAM,32.0
+2022,Max,Draymond,12.0
+2022,Max,Murray,34.0
+2022,Max,Derozan,25.0
+2022,Max,Gobert,30.0
+2022,Max,Brandon Ingram,22.0
+2022,Max,Isaiah Jackson,2.0
+2022,Max,Nunn,1.0
+2022,Max,Josh Hart,2.0
+2022,Max,Mitchel Robinson,1.0
+2022,Max,Pokusevski,1.0
+2022,Max,John Wall,1.0
+2022,RoRon,Curry,59.0
+2022,RoRon,Davis,35.0
+2022,RoRon,Beal,25.0
+2022,RoRon,Jimmy,29.0
+2022,RoRon,Zach LaVine,25.0
+2022,RoRon,Lauri Markkanen,15.0
+2022,RoRon,Isaiah stewart,4.0
+2022,RoRon,Steven Adams,3.0
+2022,RoRon,Zubac,1.0
+2022,RoRon,Brandon Clarc,1.0
+2022,RoRon,Beverly,1.0
+2022,RoRon,KC Pope,1.0
+2022,RoRon,Harrison barnes,1.0
+2022,Gilles,Bane,34.0
+2022,Gilles,Paul George,40.0
+2022,Gilles,Kristaps Porzingis,21.0
+2022,Gilles,Paolo Banchero,19.0
+2022,Gilles,Jordan Poole,19.0
+2022,Gilles,Maxey,13.0
+2022,Gilles,Isaac,6.0
+2022,Gilles,John Collins,14.0
+2022,Gilles,Monte Morris,5.0
+2022,Gilles,Anfernee Simons,5.0
+2022,Gilles,Brook LOpez,4.0
+2022,Gilles,Jerami Grant,9.0
+2022,Gilles,Saddiq Bey,11.0
+2022,Stijn,dURANT,57.0
+2022,Stijn,LaMelo,43.0
+2022,Stijn,Tyrese Haliburton,43.0
+2022,Stijn,Jaylen Brown,21.0
+2022,Stijn,Wendell Carter Jr.,9.0
+2022,Stijn,Jalen Suggs,4.0
+2022,Stijn,C.J. McCollum,14.0
+2022,Stijn,Drummond,1.0
+2022,Stijn,Okonngu,1.0
+2022,Stijn,CAM Johnson,4.0
+2022,Stijn,Norman Powell,1.0
+2022,Stijn,Walker Kessler,1.0
+2022,Stijn,Seth Curry,1.0
+2022,VonDutsen (Elias),Leonard,44.0
+2022,VonDutsen (Elias),Harden,49.0
+2022,VonDutsen (Elias),Evan Mobley,24.0
+2022,VonDutsen (Elias),D'Angelo Russell,8.0
+2022,VonDutsen (Elias),Kyle Lowry,8.0
+2022,VonDutsen (Elias),Jarrett Allen,20.0
+2022,VonDutsen (Elias),Giddey,12.0
+2022,VonDutsen (Elias),Trent Jr.,5.0
+2022,VonDutsen (Elias),Robert Williams,4.0
+2022,VonDutsen (Elias),Spencer Dinwiddie,2.0
+2022,VonDutsen (Elias),Vanderbilt,4.0
+2022,VonDutsen (Elias),Mike Conley,2.0
+2022,VonDutsen (Elias),Hartenstein,18.0
+2022,Tom,Embiid,63.0
+2022,Tom,Donovan M.,26.0
+2022,Tom,Tatum,48.0
+2022,Tom,Smart,12.0
+2022,Tom,Fred VanVleet,29.0
+2022,Tom,Luguentz Dort,3.0
+2022,Tom,Horford,4.0
+2022,Tom,Herro,5.0
+2022,Tom,Bobby Portis,3.0
+2022,Tom,Olynyk,1.0
+2022,Tom,Cole Anthony,1.0
+2022,Tom,Jalen Smith,2.0
+2022,Tom,Bones Hyland,2.0
+2022,Lu G,KAT,43.0
+2022,Lu G,ANT,32.0
+2022,Lu G,Mikal Bridges,14.0
+2022,Lu G,Garland,33.0
+2022,Lu G,Myles Turner,23.0
+2022,Lu G,Jamal Murray,15.0
+2022,Lu G,Julius Randle,12.0
+2022,Lu G,Franz Wagner,15.0
+2022,Lu G,Bojan Bogdanovic,1.0
+2022,Lu G,Tobias Harris,5.0
+2022,Lu G,Kyle Kuzma,4.0
+2022,Lu G,Fournier,1.0
+2022,Lu G,RJ Barret,2.0
+2021,Alex,John Collins,26.0
+2021,Alex,DeAndre Ayton,30.0
+2021,Alex,Robert Williams,20.0
+2021,Alex,Tobias Harris,22.0
+2021,Alex,Jaylen Brown,27.0
+2021,Alex,Jrue Holiday,26.0
+2021,Alex,Miles Bridges,7.0
+2021,Alex,Norman Powell,10.0
+2021,Alex,Mikal Bridges,12.0
+2021,Alex,Daniel Gafford,7.0
+2021,Alex,Matisse Thybulle,8.0
+2021,Alex,Precious Achiuwa,2.0
+2021,Alex,De'Andre Hunter,3.0
+2021,Otto,Zach Lavine,39.0
+2021,Otto,James Harden,70.0
+2021,Otto,Lonzo Ball,30.0
+2021,Otto,Kelly Olynyk,6.0
+2021,Otto,CJ McCollum,16.0
+2021,Otto,Jonas Valanciunas,16.0
+2021,Otto,Isaiah Stewart,9.0
+2021,Otto,Bojan Bogdanovic,4.0
+2021,Otto,TJ Warren,4.0
+2021,Otto,Saddiq Bey,3.0
+2021,Otto,Lauri Markkanen,1.0
+2021,Otto,Bobby Portis,1.0
+2021,Otto,Trent Jr.,1.0
+2021,Damareeck,Julius Randle,31.0
+2021,Damareeck,Michael Porter Jr,30.0
+2021,Damareeck,Kristaps Porzingis,24.0
+2021,Damareeck,Mike Conley,11.0
+2021,Damareeck,Jordan Poole,7.0
+2021,Damareeck,Gordon Hayward,18.0
+2021,Damareeck,Jarren Jackson Jr.,30.0
+2021,Damareeck,Darius Garland,11.0
+2021,Damareeck,Anthony Edwards,28.0
+2021,Damareeck,Chris Boucher,5.0
+2021,Damareeck,Tim Hardaway Jr,3.0
+2021,Damareeck,Killian Hayes,1.0
+2021,Damareeck,Terrance Mann,1.0
+2021,Emiel,Nikola Jokic,71.0
+2021,Emiel,Karl-Anthony Towns,55.0
+2021,Emiel,Chris Paul,26.0
+2021,Emiel,Derrick White,12.0
+2021,Emiel,Buddy Hield,8.0
+2021,Emiel,PJ Washington,7.0
+2021,Emiel,Robert Covington,9.0
+2021,Emiel,Harrison Barnes,3.0
+2021,Emiel,Joe Harris,1.0
+2021,Emiel,Tyrese Maxey,2.0
+2021,Emiel,De'Anthony Melton,4.0
+2021,Emiel,Eric Bledsoe,1.0
+2021,Emiel,Dragic,1.0
+2021,Star J - Bubble Champ,Lillard,48.0
+2021,Star J - Bubble Champ,Curry,69.0
+2021,Star J - Bubble Champ,Russell Westbrook,27.0
+2021,Star J - Bubble Champ,Shai-Gilgeous Alexander Dingske,34.0
+2021,Star J - Bubble Champ,Josh Giddey,10.0
+2021,Star J - Bubble Champ,Ivica Zubac,1.0
+2021,Star J - Bubble Champ,Thomas Bryant,2.0
+2021,Star J - Bubble Champ,Dwight Powell,1.0
+2021,Star J - Bubble Champ,Dillon Brooks,4.0
+2021,Star J - Bubble Champ,Derrick Favors,1.0
+2021,Star J - Bubble Champ,Dorrian-Finney Smith,1.0
+2021,Star J - Bubble Champ,Divincenzo,1.0
+2021,Star J - Bubble Champ,crowder,1.0
+2021,Max,Kyrie Irving,17.0
+2021,Max,LeBron James,41.0
+2021,Max,Jaylen Suggs,14.0
+2021,Max,Kyle Lowry,22.0
+2021,Max,Draymond Green,26.0
+2021,Max,Ja Morant,25.0
+2021,Max,Tyler Herro,13.0
+2021,Max,Cade Cunningham,20.0
+2021,Max,Wendell Carter Jr.,11.0
+2021,Max,Steven Adams,6.0
+2021,Max,Montrezl Harrell,3.0
+2021,Max,Ricky Rubio,1.0
+2021,Max,Nic Batum,1.0
+2021,Ronny,BAM,40.0
+2021,Ronny,Paul George,53.0
+2021,Ronny,Ben Simmons,20.0
+2021,Ronny,Devin Booker,40.0
+2021,Ronny,Christian Wood,19.0
+2021,Ronny,Jamal Murray,5.0
+2021,Ronny,Scottie Barnes,4.0
+2021,Ronny,Malcolm Brogdon,11.0
+2021,Ronny,Aaron Gordon,2.0
+2021,Ronny,Cole Anthony,1.0
+2021,Ronny,Malik Beasley,2.0
+2021,Ronny,Reggie Jackson,2.0
+2021,Ronny,Oladipo,1.0
+2021,Gilles,Giannis Antetokounmpo,66.0
+2021,Gilles,LaMelo Ball,41.0
+2021,Gilles,Rudy Gobert,35.0
+2021,Gilles,Jonathan Isaac,15.0
+2021,Gilles,Nerlens Noel,7.0
+2021,Gilles,Richaun Holmes,17.0
+2021,Gilles,Markelle Fultz,2.0
+2021,Gilles,Andrew Wiggins,6.0
+2021,Gilles,Thaddeus Young,3.0
+2021,Gilles,Joe Ingles,3.0
+2021,Gilles,Desmond Bane,2.0
+2021,Gilles,Jarred Vanderbilt,2.0
+2021,Gilles,Seth Curry,1.0
+2021,Stijn,Luka Doncic,67.0
+2021,Stijn,Kevin Porter Jr.,21.0
+2021,Stijn,Jimmy Butler,40.0
+2021,Stijn,Domantas Sabonis,33.0
+2021,Stijn,De'aaron Fox,25.0
+2021,Stijn,Kawhi Leonard,2.0
+2021,Stijn,Evan Mobley,6.0
+2021,Stijn,Daniel Theis,1.0
+2021,Stijn,Alperen Sengun,1.0
+2021,Stijn,Claxton,1.0
+2021,Stijn,howard,1.0
+2021,Stijn,brown,1.0
+2021,Stijn,Looney,1.0
+2021,VonStuffen (Elias),Kevin Durant,61.0
+2021,VonStuffen (Elias),Trae Young,44.0
+2021,VonStuffen (Elias),Bradley Beal,49.0
+2021,VonStuffen (Elias),Lu Dort,4.0
+2021,VonStuffen (Elias),Clint Capela,13.0
+2021,VonStuffen (Elias),Evan Fournier,3.0
+2021,VonStuffen (Elias),Jakob Poeltl,11.0
+2021,VonStuffen (Elias),Nickeil-Alexander Walker,4.0
+2021,VonStuffen (Elias),Jae'Sean Tate,3.0
+2021,VonStuffen (Elias),Chuma Okeke,1.0
+2021,VonStuffen (Elias),Mason Plumlee,2.0
+2021,VonStuffen (Elias),James Wiseman,2.0
+2021,VonStuffen (Elias),Isiah Roby,2.0
+2021,Tom,Jayson Tatum,51.0
+2021,Tom,Fred VanVleet,38.0
+2021,Tom,Khris Middleton,25.0
+2021,Tom,Brandon Ingram,23.0
+2021,Tom,Myles Turner,23.0
+2021,Tom,Devonte Graham,6.0
+2021,Tom,Marcus Smart,10.0
+2021,Tom,Al Horford,5.0
+2021,Tom,Brook Lopez,4.0
+2021,Tom,RJ Barrett,6.0
+2021,Tom,Spencer Dinwiddie,5.0
+2021,Tom,Terrence Ross,1.0
+2021,Tom,Will Barton,3.0
+2021,EL Ludianus,Jalen Green,21.0
+2021,EL Ludianus,Keldon Johnson,13.0
+2021,EL Ludianus,Nikola Vucevic,32.0
+2021,EL Ludianus,Caris Levert,15.0
+2021,EL Ludianus,Jusuf Nurkic,23.0
+2021,EL Ludianus,Demar Derozan,19.0
+2021,EL Ludianus,Terry Rosier,17.0
+2021,EL Ludianus,D'Angelo Russell,15.0
+2021,EL Ludianus,Kemba Walker,10.0
+2021,EL Ludianus,Jerami Grant,8.0
+2021,EL Ludianus,Jordan Clarkson,5.0
+2021,EL Ludianus,Klay Thompson,4.0
+2021,EL Ludianus,Andre Drummond,18.0
+2021,R to tha bizzay,Donovan Mitchell,35.0
+2021,R to tha bizzay,Anthony Davis,50.0
+2021,R to tha bizzay,Zion Williamson,30.0
+2021,R to tha bizzay,Pascal Siakam,25.0
+2021,R to tha bizzay,Mitchell Robinson,14.0
+2021,R to tha bizzay,Dejounte Murray,17.0
+2021,R to tha bizzay,Colin Sexton,11.0
+2021,R to tha bizzay,Tj McConnell,3.0
+2021,R to tha bizzay,Jarrett Allen,7.0
+2021,R to tha bizzay,Dennis Schroder,2.0
+2021,R to tha bizzay,Duncan Robinson,2.0
+2021,R to tha bizzay,Mo Bamba,2.0
+2021,R to tha bizzay,Patrick Williams,2.0
+2021,Pele,Joel Embiid,50.0
+2021,Pele,OG Anunoby,29.0
+2021,Pele,Tyrese Haliburton,24.0
+2021,Pele,Bogdan Bogdanovic,16.0
+2021,Pele,Larry Nance Jr,6.0
+2021,Pele,Danny Green,6.0
+2021,Pele,Jayden McDaniels,4.0
+2021,Pele,Kuzma,4.0
+2021,Pele,Rose,1.0
+2021,Pele,Hachimura,1.0
+2021,Pele,Aldridge,1.0
+2021,Pele,Monte Morris,1.0
+2021,Pele,Ibaka,1.0
+2020,Alex,Killian Hayes,8.0
+2020,Alex,CJ McCollum,19.0
+2020,Alex,Sabonis,30.0
+2020,Alex,D'Angelo Russel,31.0
+2020,Alex,Fox,27.0
+2020,Alex,Buddy Hield,15.0
+2020,Alex,Derrick White,12.0
+2020,Alex,Randle,11.0
+2020,Alex,Smart,20.0
+2020,Alex,Jerami Grant,11.0
+2020,Alex,OG Anunoby,11.0
+2020,Alex,Ibaka,4.0
+2020,Alex,Daniel Theis,1.0
+2020,Otto,Chris Paul,31.0
+2020,Otto,Clint Capela,15.0
+2020,Otto,Jrue Holiday,24.0
+2020,Otto,Jusuf Nurkic,35.0
+2020,Otto,Rudy Gobert,36.0
+2020,Otto,Kelly Oubre,16.0
+2020,Otto,Elf Holford,11.0
+2020,Otto,S. Adams,7.0
+2020,Otto,Bledsoe,10.0
+2020,Otto,Aaron Gordon,6.0
+2020,Otto,Fultz,6.0
+2020,Otto,Barton,2.0
+2020,Otto,PJ Tucker,1.0
+2020,Damareeck,Ben Simmons,41.0
+2020,Damareeck,Andre Drummond,38.0
+2020,Damareeck,Ja Morant,32.0
+2020,Damareeck,Dejounte Murray,20.0
+2020,Damareeck,Draymond Green,15.0
+2020,Damareeck,Jonas Valanciunas,20.0
+2020,Damareeck,Andrew Wiggins,5.0
+2020,Damareeck,M Robinson,11.0
+2020,Damareeck,Wendell Carter Jr.,9.0
+2020,Damareeck,Mikal Bridges,6.0
+2020,Damareeck,Robert Williams,1.0
+2020,Damareeck,Gary Harris,1.0
+2020,Damareeck,Larry Nance Jr.,1.0
+2020,Emiel,Kyrie Irving (FUCK),40.0
+2020,Emiel,Hayward,19.0
+2020,Emiel,Kristaps,20.0
+2020,Emiel,Kyle Lowry,24.0
+2020,Emiel,Jamal Murray,24.0
+2020,Emiel,Jaylen Brown,17.0
+2020,Emiel,Khris Middleton,26.0
+2020,Emiel,Tobias Harris,13.0
+2020,Emiel,Nerlens Noel,4.0
+2020,Emiel,Norman Powell,3.0
+2020,Emiel,Aaron Baynes,4.0
+2020,Emiel,Montrezl Harrell,4.0
+2020,Emiel,Okoro,2.0
+2020,Star J - Bubble Champ,Stephen Curry,68.0
+2020,Star J - Bubble Champ,John Collins,31.0
+2020,Star J - Bubble Champ,Shai Gilgeous Alexander,37.0
+2020,Star J - Bubble Champ,Deandre Ayton,35.0
+2020,Star J - Bubble Champ,Rozier,7.0
+2020,Star J - Bubble Champ,Rubio,5.0
+2020,Star J - Bubble Champ,Josh Richardson,3.0
+2020,Star J - Bubble Champ,Brandon Clarke,4.0
+2020,Star J - Bubble Champ,Cam Reddish,4.0
+2020,Star J - Bubble Champ,LeVert,3.0
+2020,Star J - Bubble Champ,Hachimura,1.0
+2020,Star J - Bubble Champ,DeAndre Hunter,1.0
+2020,Star J - Bubble Champ,Nemanja Bjelica,1.0
+2020,Max,Pascal Siakam,26.0
+2020,Max,Christian Wood,38.0
+2020,Max,Zach Lavine,35.0
+2020,Max,LaMarcus Aldridge,25.0
+2020,Max,TJ Warren,18.0
+2020,Max,Nikola Vucevic,24.0
+2020,Max,Jarren Jackson Jr.,12.0
+2020,Max,Michael Porter Jr.,15.0
+2020,Max,Divicenzo,2.0
+2020,Max,RJ Barrett,2.0
+2020,Max,Darius Garland,1.0
+2020,Max,Jordan Clarkson,1.0
+2020,Max,Marc Gasol,1.0
+2020,Ronny,Kawhi Leonard,44.0
+2020,Ronny,Jimmy Butler,42.0
+2020,Ronny,Bradley Beal,39.0
+2020,Ronny,Karl-Anthony Towns,64.0
+2020,Ronny,Devin Vassel,1.0
+2020,Ronny,Dennis Schröder,2.0
+2020,Ronny,Malik Beasley,1.0
+2020,Ronny,Miles Bridges,2.0
+2020,Ronny,Cole Anthony,1.0
+2020,Ronny,Obi Toppin,1.0
+2020,Ronny,Kendrick Nunn,1.0
+2020,Ronny,Kevin Porter Jr.,1.0
+2020,Ronny,Immanuel Quickley,1.0
+2020,Gilles,Harden,76.0
+2020,Gilles,Davis,76.0
+2020,Gilles,Covington,24.0
+2020,Gilles,Tyrese Haliburton,1.0
+2020,Gilles,Chris Boucher,5.0
+2020,Gilles,Patrick Williams,1.0
+2020,Gilles,Terrence Ross,4.0
+2020,Gilles,Holmes,8.0
+2020,Gilles,Bol Bol,1.0
+2020,Gilles,Nesmith,1.0
+2020,Gilles,Maxey,1.0
+2020,Gilles,Luke Kennard,1.0
+2020,Gilles,Matisse Thybulle,1.0
+2020,Stijn,Trae Young,53.0
+2020,Stijn,Paul George,46.0
+2020,Stijn,Nikola Jokic,60.0
+2020,Stijn,Oladipo,11.0
+2020,Stijn,Coby White,11.0
+2020,Stijn,Mike Conley,7.0
+2020,Stijn,Payton,1.0
+2020,Stijn,Thaddeus Young,2.0
+2020,Stijn,George Hill,1.0
+2020,Stijn,Paul Millsap,1.0
+2020,Stijn,Jae Crowder,1.0
+2020,Stijn,Deni Avdija,1.0
+2020,Stijn,Shake Milton,1.0
+2020,VonStuffen (Elias),Damian Lillard,55.0
+2020,VonStuffen (Elias),Russell Westbrook,36.0
+2020,VonStuffen (Elias),Wall,20.0
+2020,VonStuffen (Elias),Griffin,10.0
+2020,VonStuffen (Elias),Lonzo Ball,20.0
+2020,VonStuffen (Elias),Bertans,8.0
+2020,VonStuffen (Elias),Bazley,8.0
+2020,VonStuffen (Elias),Sweet Lou,5.0
+2020,VonStuffen (Elias),Marvin Bagley Jr.,3.0
+2020,VonStuffen (Elias),Bojan Bogdanovic,9.0
+2020,VonStuffen (Elias),Bogdan Bogdanovic,6.0
+2020,VonStuffen (Elias),Alec Burks,3.0
+2020,VonStuffen (Elias),Jarrett Allen,17.0
+2020,Tom,Giannis,66.0
+2020,Tom,Ingram,28.0
+2020,Tom,Embiid,49.0
+2020,Tom,Mitchell,35.0
+2020,Tom,Otto Porter Jr.,5.0
+2020,Tom,Delon Wright,3.0
+2020,Tom,Fournier,7.0
+2020,Tom,DeAndre Jordan,2.0
+2020,Tom,Derrick Favours,1.0
+2020,Tom,Maxi Kleber,1.0
+2020,Tom,Tim Hardaway Jr.,1.0
+2020,Tom,Dario Saric,1.0
+2020,Tom,Patrick Beverley,1.0
+2020,Lode,Fred VanVleet,29.0
+2020,Lode,Bam Adebayo,41.0
+2020,Lode,Zion Williamson,37.0
+2020,Lode,KD,40.0
+2020,Lode,Tyler Herro,12.0
+2020,Lode,Gallinari,6.0
+2020,Lode,Brook Lopez,11.0
+2020,Lode,Duncan Robinson,6.0
+2020,Lode,Spencer Dinwiddie,4.0
+2020,Lode,Anthony Edwards,2.0
+2020,Lode,Goran Dragic,3.0
+2020,Lode,Joe Harris,6.0
+2020,Lode,Enes Kanter,2.0
+2020,Robin,Doncic,68.0
+2020,Robin,Lamelo Ball,12.0
+2020,Robin,PJ Washington,11.0
+2020,Robin,Derozan,21.0
+2020,Robin,Love,11.0
+2020,Robin,Brogdon,16.0
+2020,Robin,Whiteside,16.0
+2020,Robin,Kemba,9.0
+2020,Robin,Myles Turner,14.0
+2020,Robin,Wiseman,6.0
+2020,Robin,Collin Soexton,9.0
+2020,Robin,Harrison Barnes,3.0
+2020,Robin,Devonte Graham,4.0
+2020,Pele,LeBron,51.0
+2020,Pele,Tatum,45.0
+2020,Pele,Booker,44.0
+2020,Pele,Markkanen,13.0
+2020,Pele,Seth Curry,9.0
+2020,Pele,Thomas Bryant,17.0
+2020,Pele,rondo,1.0
+2020,Pele,Cousins,11.0
+2020,Pele,JJ Redick,1.0
+2020,Pele,Rose,2.0
+2020,Pele,Mason Plumlee,1.0
+2020,Pele,Danny Green,1.0
+2020,Pele,Talen Horton-Tucker,1.0
+2019,Alex,Ja Morant,17.0
+2019,Alex,Trae Young,34.0
+2019,Alex,iok,20.0
+2019,Alex,Fred VanVleet,10.0
+2019,Alex,Victor Oladipo,15.0
+2019,Alex,Jayson Tatum,16.0
+2019,Alex,Josh Richardson,12.0
+2019,Alex,Danillo Galinari,17.0
+2019,Alex,Jeremy Lamb,9.0
+2019,Alex,Domantas Sabonis,11.0
+2019,Alex,Jarren Jackson Jr,24.0
+2019,Alex,Lou Williams,8.0
+2019,Alex,Tacko Fall,1.0
+2019,Otto,Siakam,36.0
+2019,Otto,Chris Paul,31.0
+2019,Otto,LaMarcus Aldridge,25.0
+2019,Otto,Kevin Love,27.0
+2019,Otto,Zach Lavine,25.0
+2019,Otto,Eric Bledsoe,16.0
+2019,Otto,Ricky Rubio,11.0
+2019,Otto,Deandre Hunter,9.0
+2019,Otto,Joe harris,5.0
+2019,Otto,Dewayne Dedmon,6.0
+2019,Otto,Alex Len,3.0
+2019,Otto,JaVale McGee,4.0
+2019,Otto,Brandon Clarke,2.0
+2019,David,Devin Booker,42.0
+2019,David,Embiid,58.0
+2019,David,Caris Levert,13.0
+2019,David,Donovan Mitchel,28.0
+2019,David,Bam Adebayo,17.0
+2019,David,Jarret Allen,15.0
+2019,David,Shai Gilgeous-Alexander,15.0
+2019,David,Larry Nance Jr,7.0
+2019,David,Norman Powell,1.0
+2019,David,Zach Collins,1.0
+2019,David,Jared Culver,1.0
+2019,David,Jacob Poetl,1.0
+2019,David,Mattis Thybulle,1.0
+2019,Emiel,Derozan,23.0
+2019,Emiel,DeAndre Ayton,34.0
+2019,Emiel,Kemba Walker,35.0
+2019,Emiel,Jrue Holiday,36.0
+2019,Emiel,Draymond Green,29.0
+2019,Emiel,Tobias Harris,23.0
+2019,Emiel,Delon Wright,6.0
+2019,Emiel,Bojan Bogdanovic (Utah),8.0
+2019,Emiel,Davis Bertans,2.0
+2019,Emiel,Kevon Looney,1.0
+2019,Emiel,Tristan Thomson,1.0
+2019,Emiel,Kelly Olynyk,1.0
+2019,Emiel,DJ Augustin,1.0
+2019,Star J - The Zion Swimmers,Zion,51.0
+2019,Star J - The Zion Swimmers,Steph Curry,79.0
+2019,Star J - The Zion Swimmers,Myles Turner,23.0
+2019,Star J - The Zion Swimmers,Derrick Favors,14.0
+2019,Star J - The Zion Swimmers,Dario Saric,5.0
+2019,Star J - The Zion Swimmers,WCS,5.0
+2019,Star J - The Zion Swimmers,Tyler Herro,4.0
+2019,Star J - The Zion Swimmers,Markelle Fultz,2.0
+2019,Star J - The Zion Swimmers,Dejounte Murray,3.0
+2019,Star J - The Zion Swimmers,Kevin Huerter,2.0
+2019,Star J - The Zion Swimmers,Mikal Bridges,1.0
+2019,Star J - The Zion Swimmers,Jeremy Grant,3.0
+2019,Star J - The Zion Swimmers,Taurean Prince,8.0
+2019,Commish Max,AD,80.0
+2019,Commish Max,Lonzo Ball,21.0
+2019,Commish Max,Mike Conley,20.0
+2019,Commish Max,Blake Griffin,18.0
+2019,Commish Max,Lowry,18.0
+2019,Commish Max,DLo,22.0
+2019,Commish Max,Danny Green,5.0
+2019,Commish Max,Ish Smith,4.0
+2019,Commish Max,Thaddeus Young,2.0
+2019,Commish Max,Andrew Wiggins,5.0
+2019,Commish Max,Evan Fournier,2.0
+2019,Commish Max,Paul Millsap,2.0
+2019,Commish Max,Klay Thompson,1.0
+2019,Aaron,Westbrook,43.0
+2019,Aaron,Andre Drummond,39.0
+2019,Aaron,Damian Lillard,49.0
+2019,Aaron,Kyle Kuzma,6.0
+2019,Aaron,Marcus Smart,4.0
+2019,Aaron,Wendell Carter Jr,10.0
+2019,Aaron,Dwight Powel,3.0
+2019,Aaron,TJ Warren,8.0
+2019,Aaron,Brandon Ingram,5.0
+2019,Aaron,Enes kanter,5.0
+2019,Aaron,Kelly Oubre Jr,7.0
+2019,Aaron,Serge ibaka,4.0
+2019,Aaron,Jaylen Brown,3.0
+2019,Gilles,Jokic,62.0
+2019,Gilles,Mitchel Robinson,31.0
+2019,Gilles,Kyrie Irving,45.0
+2019,Gilles,Covington,21.0
+2019,Gilles,Jonathan Isaac,18.0
+2019,Gilles,Patrick Beverly,8.0
+2019,Gilles,Elfrid Payton,2.0
+2019,Gilles,Cam reddish,3.0
+2019,Gilles,Kent Bazemore,2.0
+2019,Gilles,Joe Ingles,4.0
+2019,Gilles,Goran Dragic,2.0
+2019,Gilles,PJ Tucker,1.0
+2019,Gilles,George Hill,1.0
+2019,Stijn,Lebron,60.0
+2019,Stijn,Clint Capela,28.0
+2019,Stijn,Ben Simmons,40.0
+2019,Stijn,Otto Porter Jr,23.0
+2019,Stijn,CJ Mccollum,19.0
+2019,Stijn,Julius Randle,16.0
+2019,Stijn,Jeff Teague,8.0
+2019,Stijn,Reggie Jackson,1.0
+2019,Stijn,Dwight Howard,1.0
+2019,Stijn,Landry Shamet,1.0
+2019,Stijn,Luke Kennard,1.0
+2019,Stijn,Boban Marjanovic,1.0
+2019,Stijn,Terrence Ross,1.0
+2019,Elias,Kristaps the unicorn,28.0
+2019,Elias,Luka Doncic,40.0
+2019,Elias,Montrezl Harrell,19.0
+2019,Elias,Derrick White,10.0
+2019,Elias,Nicola Vucevic,35.0
+2019,Elias,Derrick Rose,8.0
+2019,Elias,Aaron Gordon,11.0
+2019,Elias,Miles Bridges,12.0
+2019,Elias,Steven Adams,11.0
+2019,Elias,Spencer Dinwiddie,4.0
+2019,Elias,OG Anunoby,3.0
+2019,Elias,Marc Gasol,12.0
+2019,Elias,Eric Gordon,4.0
+2019,Tom,Seth Curry,1.0
+2019,Tom,Harden,80.0
+2019,Tom,John Collins,25.0
+2019,Tom,JoVal,14.0
+2019,Tom,Buddy Hield,22.0
+2019,Tom,Gordon hayward,12.0
+2019,Tom,Brook Lopez,14.0
+2019,Tom,Colin Sexton,7.0
+2019,Tom,Malcolm Brogdon,14.0
+2019,Tom,Nic Batum,2.0
+2019,Tom,Gary Harris,7.0
+2019,Tom,Rudy Gay,1.0
+2019,Tom,Robert Williams,1.0
+2019,Lode,Rozier den derde,21.0
+2019,Lode,Kawhi Leonard,53.0
+2019,Lode,Gobert,37.0
+2019,Lode,Paul George,43.0
+2019,Lode,B bogdanovic (KINGS),13.0
+2019,Lode,Marvin Bagley den derde,15.0
+2019,Lode,JJ Redick,3.0
+2019,Lode,Satoransky,4.0
+2019,Lode,Meyers Leonard,1.0
+2019,Lode,RJ Barret,3.0
+2019,Lode,Deandre Jordan,3.0
+2019,Lode,Marcus Morris,3.0
+2019,Lode,Tim Hardaway Jr,1.0
+2019,Robin,KAT,79.0
+2019,Robin,Beal,50.0
+2019,Robin,Whiteside,20.0
+2019,Robin,Khris Middleton,23.0
+2019,Robin,Jamal Murray,15.0
+2019,Robin,Justise Winslow,2.0
+2019,Robin,Mo Bamba,1.0
+2019,Robin,Rui Hachimura,2.0
+2019,Robin,Harrison Barnes,2.0
+2019,Robin,Darius Garland,1.0
+2019,Robin,Cody Zeller,2.0
+2019,Robin,Jusuf Nurkic,1.0
+2019,Robin,Will Barton,2.0
+2019,Bear,Giannis,73.0
+2019,Bear,Jimmy Butler,49.0
+2019,Bear,De'Aron Fox,31.0
+2019,Bear,Patty Mills,5.0
+2019,Bear,Al Horford,18.0
+2019,Bear,Thomas Bryant,17.0
+2019,Bear,Dennis Shroeder,1.0
+2019,Bear,Vince Carter,1.0
+2019,Bear,Rodney Hood,1.0
+2019,Bear,Nerlens Noel,1.0
+2019,Bear,Rajon Rondo,1.0
+2019,Bear,Cedi Osman,1.0
+2019,Bear,Isaiah Thomas,1.0
+2018,Alex,Wall,43.0
+2018,Alex,Marc Gasol,30.0
+2018,Alex,Rudy Gobert,30.0
+2018,Alex,CJ Mccollum,25.0
+2018,Alex,D. Howard,9.0
+2018,Alex,A. Wiggins,10.0
+2018,Alex,Klay Thompson,18.0
+2018,Alex,D. Saric,7.0
+2018,Alex,G. Harris,16.0
+2018,Alex,Kevin Knox,3.0
+2018,Alex,Gallo,3.0
+2018,Alex,T. Burke,4.0
+2018,Alex,A. Bradley,2.0
+2018,Otto,Butler,41.0
+2018,Otto,Walker,31.0
+2018,Otto,Irving,32.0
+2018,Otto,Kanter,13.0
+2018,Otto,Otto Porter Jr.,18.0
+2018,Otto,Myles Turner,16.0
+2018,Otto,E. Peyton,7.0
+2018,Otto,J. Nurkic,9.0
+2018,Otto,Zach Lavine,11.0
+2018,Otto,JJ Barrea,1.0
+2018,Otto,Joe Ingles,8.0
+2018,Otto,T. Young,4.0
+2018,Otto,Mo Bamba,5.0
+2018,Marco,Harden,68.0
+2018,Marco,Derozan,38.0
+2018,Marco,Ball,14.0
+2018,Marco,Valenciunas,8.0
+2018,Marco,Rubio,15.0
+2018,Marco,J. Randle,14.0
+2018,Marco,W. Barton,7.0
+2018,Marco,Marvin Bagley,4.0
+2018,Marco,Tim Hardaway Jr,6.0
+2018,Marco,Dwight Powel,1.0
+2018,Marco,W Carter Jr.,5.0
+2018,Marco,T. Prince,10.0
+2018,Marco,J. Clarkson,10.0
+2018,Emiel,Durant,68.0
+2018,Emiel,Horford,14.0
+2018,Emiel,Vucevic,12.0
+2018,Emiel,"""Sweet"" Lou Williams",15.0
+2018,Emiel,B. Beal,25.0
+2018,Emiel,Dejounte Murray,8.0
+2018,Emiel,K. Dunn,10.0
+2018,Emiel,J Rich,10.0
+2018,Emiel,R. Covington,7.0
+2018,Emiel,E. Bledsoe,15.0
+2018,Emiel,De'Aaron Fox,6.0
+2018,Emiel,Rondae-Hollis Jefferson,3.0
+2018,Emiel,Nicola Mirotic,7.0
+2018,STAR J,Curry,64.0
+2018,STAR J,Westbrook,55.0
+2018,STAR J,K. Love,34.0
+2018,STAR J,L. Markkannen,9.0
+2018,STAR J,J. Murray,15.0
+2018,STAR J,Jacob Poeltl,3.0
+2018,STAR J,WCS,3.0
+2018,STAR J,M. Fultz,6.0
+2018,STAR J,Levert,3.0
+2018,STAR J,Bojan,3.0
+2018,STAR J,Frank Nika something,1.0
+2018,STAR J,M. Bridges,1.0
+2018,STAR J,D.Carrol,3.0
+2018,MAX,Drummond,37.0
+2018,MAX,Simmons,48.0
+2018,MAX,Conley,23.0
+2018,MAX,Kawhi Leonard,56.0
+2018,MAX,B. Ingram,13.0
+2018,MAX,"Steven ""Kiwi Power""Adams",10.0
+2018,MAX,Sexton,3.0
+2018,MAX,R. Rondo,5.0
+2018,MAX,A. Crabbe,1.0
+2018,MAX,C. Osman,1.0
+2018,MAX,P.Gasol,1.0
+2018,MAX,Dinwiddie,1.0
+2018,MAX,M.Brooks,1.0
+2018,Aaron,Jrue Holiday,34.0
+2018,Aaron,PG13,41.0
+2018,Aaron,Middleton,26.0
+2018,Aaron,Oladipo,46.0
+2018,Aaron,T. Harris,19.0
+2018,Aaron,J. Collins,17.0
+2018,Aaron,J. Johnson,2.0
+2018,Aaron,B. Lopez,5.0
+2018,Aaron,JJ Redick,3.0
+2018,Aaron,J. Bell,1.0
+2018,Aaron,H.Giles,1.0
+2018,Aaron,B.Portis,4.0
+2018,Aaron,C.Zeller,1.0
+2018,Gilles,Towns,62.0
+2018,Gilles,Donovan Mitchell,37.0
+2018,Gilles,CP3,31.0
+2018,Gilles,D. Ayton,13.0
+2018,Gilles,G. Hayward,20.0
+2018,Gilles,G. Dragic,14.0
+2018,Gilles,Jarren Jackson Jr,6.0
+2018,Gilles,Trevor Ariza,3.0
+2018,Gilles,Rudy Gay,3.0
+2018,Gilles,Kristaps Porzingis,2.0
+2018,Gilles,Batum,5.0
+2018,Gilles,R. Anderson,1.0
+2018,Gilles,J. Hill,3.0
+2018,Stijn,LBJ,71.0
+2018,Stijn,Lowry,44.0
+2018,Stijn,Capela,22.0
+2018,Stijn,B. Griffin,20.0
+2018,Stijn,D. Jordan,20.0
+2018,Stijn,DeMarcus Cousins,4.0
+2018,Stijn,Darren Collison,4.0
+2018,Stijn,Evan Fournier,4.0
+2018,Stijn,T. Gibson,2.0
+2018,Stijn,K. Bazemore,2.0
+2018,Stijn,Augustin,2.0
+2018,Stijn,K.Anderson,4.0
+2018,Stijn,J. Brown,1.0
+2018,Elias,A. Davis,69.0
+2018,Elias,Draymond,40.0
+2018,Elias,Lillard,44.0
+2018,Elias,L. Aldridge,23.0
+2018,Elias,Reggie Jackson,6.0
+2018,Elias,Sabonis,3.0
+2018,Elias,IT,4.0
+2018,Elias,J. Jackson,3.0
+2018,Elias,R.Hood,3.0
+2018,Elias,Lin,1.0
+2018,Elias,Markieff,1.0
+2018,Elias,Hezonja,2.0
+2018,Elias,Lamb,1.0
+2018,Tom,Greek freek,73.0
+2018,Tom,Doncic,17.0
+2018,Tom,Booker,28.0
+2018,Tom,J. Allen,12.0
+2018,Tom,K. Kuzma,8.0
+2018,Tom,H. Whiteside,10.0
+2018,Tom,H. Barnes,8.0
+2018,Tom,D'Angelo Russel,5.0
+2018,Tom,Tyreke Evans,5.0
+2018,Tom,Millsap,9.0
+2018,Tom,Melo,3.0
+2018,Tom,S. Ibaka,5.0
+2018,Tom,J. Teague,17.0
+2018,Lode,Jokic,65.0
+2018,Lode,Embiid,47.0
+2018,Lode,Tatum,16.0
+2018,Lode,Hield,9.0
+2018,Lode,Terry Rozier,4.0
+2018,Lode,DSJ,10.0
+2018,Lode,Trae Young,4.0
+2018,Lode,TJ Warren,5.0
+2018,Lode,Aaron Gordon,14.0
+2018,Lode,Jabari Parker,11.0
+2018,Lode,D. Schroder,4.0
+2018,Lode,E. Gordon,3.0
+2018,Lode,D. Favors,4.0
+2017,Alex,Durant,67.0
+2017,Alex,Gobert,45.0
+2017,Alex,Blake,22.0
+2017,Alex,Middleton,24.0
+2017,Alex,Melo,13.0
+2017,Alex,Horford,13.0
+2017,Alex,Batum,3.0
+2017,Alex,Hield,3.0
+2017,Alex,Payton,6.0
+2017,Alex,Pau,1.0
+2017,Alex,R Jackson,1.0
+2017,Alex,Robin Lopez,1.0
+2017,Alex,R. Anderson,1.0
+2017,Tetten,Westbrook,76.0
+2017,Tetten,Butler,37.0
+2017,Tetten,Whiteside,39.0
+2017,Tetten,I.Thomas,28.0
+2017,Tetten,Wade,4.0
+2017,Tetten,Jrue,9.0
+2017,Tetten,Lavine,1.0
+2017,Tetten,J. Parker,1.0
+2017,Tetten,ZBO,1.0
+2017,Tetten,Markieff Morris,1.0
+2017,Tetten,T Thompson,1.0
+2017,Tetten,Nerlens Noel,1.0
+2017,Tetten,J Murray,1.0
+2017,Marco,Greek,76.0
+2017,Marco,KAT,64.0
+2017,Marco,Ball,14.0
+2017,Marco,DLo,11.0
+2017,Marco,E.Gordon,8.0
+2017,Marco,Nurkic,15.0
+2017,Marco,Crowder,4.0
+2017,Marco,JJ Redick,2.0
+2017,Marco,Mirotic,2.0
+2017,Marco,Iguodala,1.0
+2017,Marco,D Favors,1.0
+2017,Marco,Kaminsky,1.0
+2017,Marco,W. Matthews,1.0
+2017,Emiel,Wall,54.0
+2017,Emiel,JVal,12.0
+2017,Emiel,Beal,27.0
+2017,Emiel,teague,15.0
+2017,Emiel,KLove,17.0
+2017,Emiel,Embiid,19.0
+2017,Emiel,O.Porter,14.0
+2017,Emiel,Bledsoe,17.0
+2017,Emiel,Wiggins,11.0
+2017,Emiel,GHill,5.0
+2017,Emiel,Dirk!!,1.0
+2017,Emiel,M. Chriss,2.0
+2017,Emiel,Rondae Hollis-Jefferson,6.0
+2017,STAR J,COusins,46.0
+2017,STAR J,Jokic,46.0
+2017,STAR J,Curry,67.0
+2017,STAR J,A.Bradley,7.0
+2017,STAR J,B.Simmons,11.0
+2017,STAR J,Vucevic,9.0
+2017,STAR J,Gortat,2.0
+2017,STAR J,Dieng,5.0
+2017,STAR J,Saric,2.0
+2017,STAR J,Jayson Tatum,1.0
+2017,STAR J,Brogdon,2.0
+2017,STAR J,Dion Waiters,1.0
+2017,STAR J,teodosic,1.0
+2017,MAX,Kawhi,62.0
+2017,MAX,LeBron,69.0
+2017,MAX,Rubio,12.0
+2017,MAX,Drummond,15.0
+2017,MAX,Milsap,18.0
+2017,MAX,louWill,4.0
+2017,MAX,Aldridge,7.0
+2017,MAX,Gallo,6.0
+2017,MAX,Fox,2.0
+2017,MAX,W. Chandler,1.0
+2017,MAX,KCP,2.0
+2017,MAX,DRose,1.0
+2017,MAX,Patrick Beverly,1.0
+2017,Aaron,CP3,41.0
+2017,Aaron,Dipo,11.0
+2017,Aaron,Kemba,30.0
+2017,Aaron,Kyrie,38.0
+2017,Aaron,Ibaka,13.0
+2017,Aaron,G.Harris,10.0
+2017,Aaron,Marc,22.0
+2017,Aaron,Adams,6.0
+2017,Aaron,DeRozan,23.0
+2017,Aaron,Fournier,3.0
+2017,Aaron,Kanter,1.0
+2017,Aaron,WCS,1.0
+2017,Aaron,J; Johnson,1.0
+2017,Gilles,AD,66.0
+2017,Gilles,PG13,37.0
+2017,Gilles,Lowry,26.0
+2017,Gilles,M.Turner,27.0
+2017,Gilles,Hayward,32.0
+2017,Gilles,DSJ,4.0
+2017,Gilles,W. Hernangomez,1.0
+2017,Gilles,J; Jackson,1.0
+2017,Gilles,Rudy Gay,2.0
+2017,Gilles,Ingram,1.0
+2017,Gilles,R. Hood,1.0
+2017,Gilles,Kid-Gilchrist,1.0
+2017,Gilles,The frank guy (antily somtheing),1.0
+2017,Stijn,DJ,17.0
+2017,Stijn,HArden,72.0
+2017,Stijn,H.Barnes,8.0
+2017,Stijn,Klay,30.0
+2017,Stijn,CJ Mac,32.0
+2017,Stijn,SHroeder,15.0
+2017,Stijn,Capela,7.0
+2017,Stijn,Covington,7.0
+2017,Stijn,Randle,6.0
+2017,Stijn,Monroe,2.0
+2017,Stijn,J. Lin,1.0
+2017,Stijn,A. Gordon,2.0
+2017,Stijn,T. Young,1.0
+2017,Elias,LIllard,35.0
+2017,Elias,D.Green,30.0
+2017,Elias,BroLo,20.0
+2017,Elias,Porzingis,31.0
+2017,Elias,Conley,20.0
+2017,Elias,D.Booker,19.0
+2017,Elias,Ariza,6.0
+2017,Elias,Rondo,5.0
+2017,Elias,D12,3.0
+2017,Elias,DRAGIC,14.0
+2017,Elias,Fultz,4.0
+2017,Elias,T.Harris,7.0
+2017,Elias,Hardaway jr,1.0

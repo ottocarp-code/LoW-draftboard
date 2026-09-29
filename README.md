@@ -43,15 +43,29 @@ eigennamen beter dan een mengeling met Nederlandse structuurwoorden. Dat telt
 zodra de spraaklaag erbij komt.
 
 ```
-derozan to emiel for 13        pick toewijzen
+nominate anthony edwards       speler op het blok, genomineerd door het team aan de beurt
+sold to rj for 5               de speler op het blok wordt een pick (for mag weg)
+sold to rj                     idem, de app vraagt het bedrag
+derozan to emiel for 13        pick in één stap, zonder blok
 wembanyama to roro for eighty five
-turn roro                      beurt handmatig zetten
+turn roro                      beurt handmatig zetten (ook: clock roro)
 skip                           beurt doorschuiven
 go back                        beurt terug naar het vorige team
 sengun mine 12                 pick voor jezelf ("me" in de instellingen)
-undo                           laatste pick terug
-undo 3                         laatste drie picks terug, na bevestiging
+undo                           laatste pick terug; staat er iemand op het blok, dan enkel het blok leeg
+undo 3                         laatste drie picks terug, na bevestiging (ook hier: eerst het blok)
 ```
+
+**Het blok.** Op draftavond wordt een speler eerst genomineerd en pas later
+verkocht. `nominate <speler>` zet hem groot bovenaan elk scherm, met wie hem
+nomineerde en de max bid van elk team. `sold to <team> for <bedrag>` maakt er een
+gewone pick van: dezelfde regels als een pick (max bid, volle roster) en de beurt
+schuift door. Een ongeldige sold laat het blok staan. Er staat maar één speler
+tegelijk op het blok; een tweede `nominate` geeft "X is on the block: say sold or
+undo." `undo` haalt de speler van het blok zonder picks te raken, net als de knop
+"Clear" in het blokpaneel. Een pick in één stap van dezelfde speler en een nieuwe
+draft maken het blok ook leeg. Het blok staat in SQLite en overleeft een herstart.
+`nominate` zet de beurt niet meer; dat doen `turn`, `clock`, `skip` en `go back`.
 
 Bedragen mogen cijfers of Engelse getalwoorden zijn. Een voorafgaand `draftbot`
 wordt genegeerd, net als het wake word `low-db` (ook `low db`, `lowdb`,
@@ -63,6 +77,12 @@ Bij twijfel over de naam gokt de app niet, maar toont ze kandidaten met hun
 score. Er is geen aliastabel: matching gebeurt op bigram-overlap, een prefixbonus,
 een fonetische sleutel en soundex,
 en uitsluitend tegen de nog beschikbare spelers. Zie F-32 tot F-36 in de FRD.
+Voor Whisper-spellingen en bijnamen zijn er drie extra regels: een los lidwoord
+wordt aan het volgende woord geplakt (`the rosen` is DeRozan), woorden worden één
+op één naast de naam gelegd met een sleutel die klinkers gelijkstelt (`alparan
+senghan` is Sengun, `ant edwards` is Edwards), en een bijnaam op -y/-ie/-ee telt
+als begin van een achternaam (`wemby` is Wembanyama). Een kale `ant` of `steph`
+blijft een vraag met kandidaten.
 
 ## Structuur
 
@@ -139,11 +159,14 @@ scherm toont dan een spraakbanner met wat er gehoord is en wat er gebeurde.
 low-db steph curry to miele for 55 dollars    pick, meteen opgeslagen
 low-db bridges to rj for 5                    kandidaten in de banner, één klik op eender welk scherm
 low-db sengun to lode                         knop in de banner opent de bedragprompt
+low-db nominate anthony edwards               speler op het blok, op elk scherm
+low-db sold to rj for five                    de speler op het blok wordt een pick
 low-db turn dave  /  low-db skip  /  low-db go back
 ```
 
-Undo van picks gaat **nooit** met spraak: "low-db undo" haalt niets weg en de
-banner zegt "Undo picks by typing." Typ `undo` of klik. Een reset kan ook niet met
+Undo van picks gaat **nooit** met spraak: "low-db undo" haalt geen pick weg en de
+banner zegt "Undo picks by typing." Typ `undo` of klik. Staat er een speler op het
+blok, dan haalt "low-db undo" enkel die van het blok; picks blijven altijd staan. Een reset kan ook niet met
 spraak. Zinnen zonder wake word worden niet verstuurd. Zeg het commando in
 dezelfde adem als "low-db": na een pauze komt de rest binnen als een aparte zin
 zonder wake word, en die wordt genegeerd.

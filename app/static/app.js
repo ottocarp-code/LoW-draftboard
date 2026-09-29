@@ -80,10 +80,12 @@ function score(q, k){
   if(qc.length >= 3 && (k.n.startsWith(q) || k.lasts.some(l => l.startsWith(qc)))) s = Math.max(s, .8 + Math.min(qc.length,8)/40);
   return s;
 }
-/* The part before to/mine/for is the name, so the board filters mid-command. */
+/* The part before to/mine/for is the name, so the board filters mid-command.
+   "nominate <player>" filters on the player; "sold to <team>" names no player. */
 function nameFragment(raw){
   let t = norm(String(raw||"").replace(/\$/g," ")).replace(WAKE,"").trim();
-  if(/^(undo|skip|turn|clock|nominate|pass|next|go back|back|previous|prev)\b/.test(t)) return "";
+  if(/^(undo|skip|turn|clock|beurt|sold|pass|next|go back|back|previous|prev)\b/.test(t)) return "";
+  t = t.replace(/^nominate[sd]?\b\s*/, "");
   return t.split(/\s+(?:to|mine|for|at)(?:\s+|$)/)[0].trim();
 }
 
@@ -155,23 +157,29 @@ function handle(res, fromPrompt = false){
   if(res.state) applyState(res.state);
   switch(res.kind){
     case "pick": say(res.message, "ok"); break;
-    case "undo": case "turn": case "settings": case "reset": case "voice": say(res.message, "ok"); break;
+    case "undo": case "turn": case "settings": case "reset": case "voice":
+    case "nominate": case "unblock": say(res.message, "ok"); break;
     case "need_amount": say(res.message, "ask"); amountPrompt(res.player, res.team); break;
-    case "ambiguous": say(res.message, "ask"); candidatePrompt(res.candidates, res.team, res.amount); break;
+    case "ambiguous": say(res.message, "ask");
+      candidatePrompt(res.candidates, res.team, res.amount, null, res.action); break;
     case "confirm_undo": confirmUndo(res.picks, {count: res.count}); break;
     case "search": case "empty": break;
     default:
       say(res.message || "Something went wrong.", "err");
-      if(res.candidates && res.candidates.length) candidatePrompt(res.candidates, null, null, "Closest:");
+      if(res.candidates && res.candidates.length) candidatePrompt(res.candidates, null, null, "Closest:", res.action);
   }
 }
 
-function candidatePrompt(cands, team, amount, label){
+/* action "nominate": a click puts that player on the block instead of picking him. */
+function candidatePrompt(cands, team, amount, label, action){
   const box = $("#prompt");
-  box.append(h("span", {class: "muted", text: label || "Pick one:"}));
+  box.append(h("span", {class: "muted", text: label || (action === "nominate" ? "Nominate:" : "Pick one:")}));
   for(const c of cands){
     box.append(h("button", {type: "button", class: "cand", onclick: async () => {
-        if(team && amount != null){
+        if(action === "nominate"){
+          handle(await api("/api/nominate", {player_id: c.player.id, source: "click"}));
+        }
+        else if(team && amount != null){
           const res = await api("/api/pick", {player_id: c.player.id, team, price: amount, source: "click"});
           if(!res.ok && res.kind === "error"){ amountPrompt(c.player, team, amount); handle(res, true); }
           else handle(res);
@@ -303,7 +311,13 @@ function renderVoiceBar(ev){
     for(const c of ev.candidates || []) kids.push(h("button", {type: "button", class: "cand",
       onclick: async () => {
         const done = res => { voiceLock(true); return voiceResolve(ev, res.message); };
-        if(ev.team && ev.amount != null){
+        if(ev.action === "nominate"){
+          voiceLock(true);
+          const res = await api("/api/nominate", {player_id: c.player.id, source: "voice"});
+          handle(res);
+          if(res.ok) await done(res); else voiceLock(false);
+        }
+        else if(ev.team && ev.amount != null){
           voiceLock(true);
           const res = await api("/api/pick", {player_id: c.player.id, team: ev.team, price: ev.amount, source: "voice"});
           if(res.ok){ handle(res); await done(res); }
@@ -334,9 +348,43 @@ function render(){
   banner.hidden = !STATE.error;
   banner.textContent = STATE.error || "";
   renderVoice();
+  renderBlock();
   renderHistory();
   if(view === "board"){ renderClock(); renderBudgets(); renderPlayers(); }
   else renderRosters();
+}
+
+/* The block (nominated, not yet sold): big on every view, with the max bid of every
+   team so the room sees who can still bid what. Rebuilt only when the player or the
+   nominator changes (no headshot reload on every poll); the max bids follow each render. */
+let blockShown = null;
+function renderBlock(){
+  const el = $("#block"), b = STATE.block;
+  if(!b){ el.hidden = true; el.replaceChildren(); blockShown = null; return; }
+  const key = `${b.player.id}|${b.nominator}`;
+  if(key !== blockShown){
+    blockShown = key;
+    const p = b.player;
+    const meta = [(p.pos||"").split("/")[0], p.team, p.value != null ? `value ${money(p.value)}` : null,
+                  b.nominator ? `nominated by ${b.nominator}` : null].filter(Boolean).join(" · ");
+    el.replaceChildren(
+      photo(p.id, p.name, "ph"),
+      h("div", {class: "bwho"},
+        h("span", {class: "flabel", text: "On the block"}),
+        h("strong", {class: "bname", text: p.name, title: p.name}),
+        h("span", {class: "muted", text: meta})),
+      h("div", {class: "bbids", id: "blockBids"}),
+      h("div", {class: "bact"},
+        h("button", {type: "button", class: "primary", text: "Sold…", title: "Choose the team and amount",
+          onclick: () => { say(`${p.name} sold: choose the team and amount.`, "ask"); amountPrompt(p, null); }}),
+        h("button", {type: "button", text: "Clear", title: "Take the player off the block (no pick is removed)",
+          onclick: async () => handle(await api("/api/block/clear", {}))})));
+    el.hidden = false;
+  }
+  $("#blockBids").replaceChildren(...STATE.teams.map(t =>
+    h("span", {class: `bid${t.full ? " full" : ""}${t.name === b.nominator ? " nom" : ""}${t.is_me ? " me" : ""}`,
+               title: `${t.name}: max bid $${t.max_bid}`},
+      h("b", {text: t.name}), h("span", {text: t.full ? "full" : `$${t.max_bid}`}))));
 }
 
 function takenIds(){ return new Set((STATE ? STATE.picks : []).map(p => String(p.player_id))); }

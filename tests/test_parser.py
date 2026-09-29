@@ -210,3 +210,103 @@ def test_more_wake_variants_are_stripped(wake):
 def test_wake_does_not_eat_names(text):
     cmd = P.parse_command(text)
     assert cmd["kind"] == "pick" and cmd["name"] == text.split(" to ")[0]
+
+
+# ---------------------------------------------------------------- nominate / sold grammar
+
+@pytest.mark.parametrize("text,expected", [
+    ("nominate anthony edwards", {"kind": "nominate", "name": "anthony edwards"}),
+    ("low-db nominate curry", {"kind": "nominate", "name": "curry"}),
+    ("sold to rj for 5", {"kind": "sold", "team": "rj", "amount": 5, "amount_text": "5"}),
+    ("sold to rj 5 dollars", {"kind": "sold", "team": "rj", "amount": 5, "amount_text": None}),
+    ("sold to rj", {"kind": "sold", "team": "rj", "amount": None, "amount_text": None}),
+    ("low db sold to miele for fifty five dollars",
+     {"kind": "sold", "team": "miele", "amount": 55, "amount_text": "fifty five dollars"}),
+])
+def test_nominate_and_sold_grammar(text, expected):
+    assert P.parse_command(text) == expected
+
+
+@pytest.mark.parametrize("text", ["nominate", "sold", "sold to"])
+def test_nominate_and_sold_need_their_argument(text):
+    assert P.parse_command(text)["kind"] == "error"
+
+
+def test_nominate_no_longer_sets_the_turn(pool):
+    # "nominate" was a turn synonym; turns are turn/clock/beurt now.
+    assert P.parse_command("nominate roro")["kind"] == "nominate"
+    assert run("clock roro", pool) == {"kind": "turn", "team": "RoRo"}
+    assert run("beurt roro", pool) == {"kind": "turn", "team": "RoRo"}
+
+
+def test_interpret_nominate(pool):
+    r = run("nominate anthony edwards", pool)
+    assert r["kind"] == "nominate" and r["player"]["name"] == "Anthony Edwards"
+
+
+def test_interpret_nominate_unsure_is_ambiguous(pool):
+    r = run("nominate steph", pool)
+    assert r["kind"] == "ambiguous" and r["action"] == "nominate"
+    assert {c["player"]["name"] for c in r["candidates"][:2]} == {"Stephen Curry", "Stephon Castle"}
+
+
+def test_interpret_sold(pool):
+    assert run("sold to rj for 5", pool) == {"kind": "sold", "team": "RJ", "amount": 5}
+    assert run("sold to me", pool) == {"kind": "sold", "team": "Notto", "amount": None}
+    assert run("sold to nobody for 5", pool)["kind"] == "error"
+    assert run("sold to rj for 201", pool)["kind"] == "error"
+    assert run("sold to rj for 2.5", pool)["kind"] == "error"
+
+
+def test_pick_ambiguity_carries_the_pick_action(pool):
+    assert run("bridges to rj for 5", pool)["action"] == "pick"
+
+
+# ---------------------------------------------------------------- Whisper and nickname forms
+
+def _top(query, pool):
+    c = P.match_player(query, pool)
+    return c[0][0], c[0][1]["name"], c[1][0]
+
+
+@pytest.mark.parametrize("query,name", [
+    ("the rosen", "DeMar DeRozan"), ("de rozen", "DeMar DeRozan"), ("the rozan", "DeMar DeRozan"),
+    ("alparan senghan", "Alperen Sengun"), ("alperin sengoon", "Alperen Sengun"),
+    ("wemby", "Victor Wembanyama"), ("ant edwards", "Anthony Edwards"),
+])
+def test_whisper_and_nickname_forms_are_sure(pool, query, name):
+    top_s, top_name, second = _top(query, pool)
+    assert top_name == name and top_s >= P.SURE and top_s - second >= P.GAP, (top_s, second)
+    r = run(f"{query} to dave for 3", pool)
+    assert r["kind"] == "pick" and r["player"]["name"] == name
+
+
+def test_bare_nickname_prefix_stays_ambiguous(pool):
+    r = run("ant to dave for 3", pool)
+    assert r["kind"] == "ambiguous"
+    assert "Anthony Edwards" in [c["player"]["name"] for c in r["candidates"]]
+
+
+def test_steph_stays_ambiguous_until_one_is_gone(pool):
+    assert run("steph to dave for 3", pool)["kind"] == "ambiguous"
+    rest = [(p, k) for p, k in pool if p["name"] != "Stephon Castle"]
+    r = run("steph to dave for 3", rest)
+    assert r["kind"] == "pick" and r["player"]["name"] == "Stephen Curry"
+
+
+@pytest.mark.parametrize("query", ["curry", "derozan", "sengun", "jokic", "embiid", "brunson"])
+def test_vowel_folding_does_not_crowd_clear_names(pool, query):
+    top_s, _, second = _top(query, pool)
+    assert top_s >= P.SURE and top_s - second >= 0.15
+
+
+@pytest.mark.parametrize("query,name", [("gary", "Gary Trent Jr."), ("wemby", "Victor Wembanyama")])
+def test_nickname_rule_leaves_real_first_names_alone(pool, query, name):
+    # "gary" -> stem "gar" must not pull in Garland; 4+ letter stems only.
+    r = run(f"{query} to dave for 3", pool)
+    assert r["kind"] == "pick" and r["player"]["name"] == name
+
+
+def test_failed_nominate_error_carries_the_action(pool):
+    r = run("nominate zzqx", pool)
+    assert r["kind"] == "error" and r["action"] == "nominate"

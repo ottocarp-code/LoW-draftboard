@@ -46,3 +46,10 @@
 - **Keuze:** Eerst meten op echte opnames. Daarna komen de quick wins, dan een Engels wake word en call signs per team, en pas dan de modelkeuze (distil-small.en, fallback). GPU, turbo en CoreML vallen af.
 - **Aanpassingen:** Het plan staat in `_bmad-output/plan-voice-accuracy.md`. Er is nog geen code gewijzigd.
 - **Overleg:** De gebruiker kiest de gelaagde modelopzet. base.en draait altijd, en small.en neemt pas over als team of speler niet duidelijk matcht. Zo komt de winst in nauwkeurigheid zonder vaste vertraging. Met distil-small.en en beam 5 in de fallback beslist de bench.
+
+## 2026-09-29 — Nominate/sold gebouwd (voor het spraaktraject)
+
+- **Probleem:** Een speler wordt eerst genomineerd en pas later verkocht, maar de app kende enkel de pick in één stap. Whisper-vormen ("the rosen", "alparan senghan") en bijnamen ("wemby", "ant edwards") vonden de speler niet.
+- **Keuze:** Nominate/sold gaat voor het spraaktraject, want de opnames van fase 0 moeten de definitieve commando's gebruiken. Fase 0+1 van het spraaktraject staat in `deferred-work.md`. Een tweede nominate geeft een fout. Een undo met een speler op het blok leegt enkel het blok. De pick in één stap blijft werken.
+- **Checks:** 270 tests zijn groen (210 voordien). De review gaf 4 fixes: "gary" was ambigu door de bijnaamregel, de "Closest:"-klik na een mislukte nominate maakte een pick, bij een rename bleef de oude teamnaam op het blok staan, en een test ontbrak. 1 bevinding over de volgorde van foutmeldingen is afgewezen.
+- **Aanpassingen:** De parser kent nu nominate/sold en drie nieuwe scoreregels. Het blok staat in `settings` (store), met de routes `/api/nominate` en `/api/block/clear` en een blokpaneel op elk scherm. Het plan staat in `_bmad-output/plan-nominate-sold.md`, het detaillog in `.claude/logs/nominate-sold.md`.

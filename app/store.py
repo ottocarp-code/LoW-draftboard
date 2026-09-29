@@ -7,6 +7,11 @@ lock and one transaction and bumps `rev`, so clients re-render only when the
 state really changed. Each pick stores `turn_before`, the turn index at the
 moment it was made; undo restores exactly that value instead of stepping back,
 which stays correct across skips, manual turns and full teams.
+
+The block (the nominated player, not yet sold) lives in the `block` setting as
+{player_id, nominator, ts, source} or null, so it survives a restart and every
+screen sees it. A pick of that player (sold, or a one-step pick), `undo` and a
+reset clear it.
 """
 
 import json
@@ -203,6 +208,15 @@ class Store:
         saved = self._get("aliases") or {}
         return {t: list(saved.get(t) or []) for t in self.teams}
 
+    @property
+    def block(self):
+        """The raw block setting {player_id, nominator, ts, source}, or None."""
+        return self._get("block")
+
+    def block_player(self):
+        b = self.block
+        return self.pool.by_id.get(str(b["player_id"])) if b else None
+
     # ---------- reads ----------
     def picks(self):
         return [dict(r) for r in self.con.execute("SELECT * FROM picks ORDER BY seq")]
@@ -242,8 +256,19 @@ class Store:
                 "rosters": rosters,
                 "available_count": len(self.pool.by_id.keys() - {p["player_id"] for p in picks}),
                 "aliases": self.aliases,
+                "block": self._block_view(),
                 "voice": self.voice_state(),
             }
+
+    def _block_view(self):
+        b = self.block
+        if not b:
+            return None
+        p = self.pool.by_id.get(str(b["player_id"]))
+        player = ({k: p[k] for k in BLOCK_PLAYER_FIELDS if k in p} if p
+                  else {"id": str(b["player_id"]), "name": b.get("name") or "?"})
+        return {"player": player, "nominator": b.get("nominator"), "ts": b.get("ts"),
+                "source": b.get("source")}
 
     # ---------- mutations ----------
     def add_pick(self, player_id, team, price, source="typed"):
@@ -259,6 +284,7 @@ class Store:
             after[team] = after.get(team, 0) + 1
             idx = self.turn_idx
             new_idx = draft.advance_turn(idx, self.nom_order, before, after, lg["roster_spots"])
+            block = self.block
             with self.con:
                 self.con.execute(
                     "INSERT INTO picks(player_id,name,team,price,source,ts,turn_before) "
@@ -266,8 +292,50 @@ class Store:
                     (player["id"], player["name"], team, price, str(source or "typed")[:16],
                      time.time(), idx))
                 self._put("turn_idx", new_idx)
+                if block and str(block["player_id"]) == player["id"]:
+                    self._put("block", None)      # sold, or a one-step pick of the same player
                 self._bump()
             return player, price
+
+    def nominate(self, player_id, source="typed"):
+        """Puts a player on the block; the team on the clock is the nominator."""
+        with self.lock:
+            self.pool.refresh()
+            lg = self.pool.league()
+            player = self.pool.by_id.get(str(player_id))
+            if player is None:
+                raise draft.DraftError("Unknown player.", 404)
+            if self.block:
+                raise draft.DraftError(
+                    f'{self.block.get("name") or "A player"} is on the block: say sold or undo.',
+                    409)
+            picks = self.picks()
+            taken = next((p for p in picks if p["player_id"] == player["id"]), None)
+            if taken:
+                raise draft.DraftError(
+                    f'{player["name"]} is already drafted by {taken["team"]}.', 409)
+            order = self.nom_order
+            ci = draft.resolve_turn(self.turn_idx, order, draft.counts_of(self.teams, picks),
+                                    lg["roster_spots"])
+            if ci is None:
+                raise draft.DraftError("Every roster is full: nobody can nominate.", 409)
+            block = {"player_id": player["id"], "name": player["name"], "nominator": order[ci],
+                     "ts": time.time(), "source": str(source or "typed")[:16]}
+            with self.con:
+                self._put("block", block)
+                self._bump()
+            return player, order[ci]
+
+    def clear_block(self):
+        """Takes the player off the block. Returns the block that was cleared, or None."""
+        with self.lock:
+            block = self.block
+            if not block:
+                return None
+            with self.con:
+                self._put("block", None)
+                self._bump()
+            return block
 
     def undo_preview(self, count=None, to_seq=None):
         """The picks that an undo would remove, newest first. Raises DraftError if invalid."""
@@ -393,6 +461,10 @@ class Store:
                 self._put("nom_order", order)
                 self._put("me", cur_me)
                 self._put("aliases", nicks)
+                block = self.block
+                if block and block.get("nominator") in rename:
+                    block["nominator"] = rename[block["nominator"]]
+                    self._put("block", block)
                 self._bump()
 
     def export(self):
@@ -402,7 +474,7 @@ class Store:
                     "league": s["league"], "meta": self.pool.meta, "teams": s["teams"],
                     "me": s["me"], "aliases": s["aliases"],
                     "nom_order": s["nom_order"], "turn_idx": s["turn_idx"],
-                    "on_the_clock": s["on_the_clock"], "picks": s["picks"],
+                    "on_the_clock": s["on_the_clock"], "block": s["block"], "picks": s["picks"],
                     "rosters": s["rosters"]}
 
     def reset(self):
@@ -417,6 +489,7 @@ class Store:
             with self.con:
                 self.con.execute("DELETE FROM picks")
                 self._put("turn_idx", 0)
+                self._put("block", None)
                 self._bump()
             return path, len(data["picks"])
 
@@ -484,7 +557,11 @@ class Store:
 
 
 VOICE_EVENT_FIELDS = ("kind", "ok", "message", "player", "team", "price", "amount",
-                      "query", "candidates", "count", "picks", "removed")
+                      "query", "candidates", "count", "picks", "removed", "action",
+                      "nominator", "sold")
+# The player fields the block panel shows (headshot id, name, value, position).
+BLOCK_PLAYER_FIELDS = ("id", "name", "team", "pos", "inj", "value", "market_value",
+                       "espn_rank")
 
 
 def _clean_aliases(teams, nicks):

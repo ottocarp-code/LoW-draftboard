@@ -322,3 +322,46 @@ def test_voice_state_is_not_persisted(make_client, tmp_path):
     c2 = make_client(db=db)
     v = voice(c2)
     assert v["status"] == "off" and v["muted"] is False and v["event"] is None
+
+
+# ---------------------------------------------------------------- nominate / sold by voice
+
+def test_voice_nominate_is_seen_by_every_screen(make_client, tmp_path):
+    db = tmp_path / "two.db"
+    a, b = make_client(db=db), make_client(db=db)
+    rev = state(b)["rev"]
+    r = cmd(a, "nominate anthony edwards", heard="Low-DB, nominate Anthony Edwards.").json()
+    assert r["ok"] and r["kind"] == "nominate" and r["voice_event"]["nominator"] == "RoRo"
+    # the other window sees it on its next poll (same database, a new rev)
+    s = state(b)
+    assert s["rev"] > rev and s["block"]["player"]["name"] == "Anthony Edwards"
+
+
+def test_voice_nominate_ambiguous_carries_the_action(client):
+    r = cmd(client, "nominate steph").json()
+    assert r["kind"] == "ambiguous"
+    ev = voice(client)["event"]
+    assert ev["action"] == "nominate" and len(ev["candidates"]) >= 2
+
+
+def test_voice_sold(client):
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, "sold to rj for five dollars").json()
+    assert r["ok"] and r["kind"] == "pick" and r["sold"]
+    s = state(client)
+    assert s["block"] is None and s["picks"][-1]["source"] == "voice"
+    assert s["voice"]["event"]["sold"] is True
+
+
+@pytest.mark.parametrize("text", ["undo", "low-db undo", "undo 3"])
+def test_voice_undo_with_a_block_clears_only_the_block(client, text):
+    cmd(client, "jokic to rj for 30", source="typed")
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, text)
+    assert r.status_code == 200 and r.json()["kind"] == "unblock"
+    s = state(client)
+    assert s["block"] is None and len(s["picks"]) == 1
+    # without a block a voice undo is refused again and removes nothing
+    r = cmd(client, text)
+    assert r.status_code == 400 and r.json()["message"] == "Undo picks by typing."
+    assert len(state(client)["picks"]) == 1

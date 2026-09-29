@@ -421,3 +421,197 @@ def test_rename_onto_a_nickname_is_rejected(client):
 def test_nicknames_are_deduplicated(client):
     r = client.post("/api/settings", json={"aliases": {"Miele": ["amiel", "Amiel", " ", "Miele"]}})
     assert r.json()["state"]["aliases"]["Miele"] == ["amiel"]
+
+
+# ---------------------------------------------------------------- nominate and sold
+
+def block(c):
+    return state(c)["block"]
+
+
+def test_nominate_puts_the_player_on_the_block(client):
+    cmd(client, "turn lode")
+    rev = state(client)["rev"]
+    r = cmd(client, "nominate anthony edwards")
+    assert r.status_code == 200, r.json()
+    body = r.json()
+    assert body["ok"] and body["kind"] == "nominate" and body["nominator"] == "Lode"
+    b = body["state"]["block"]
+    assert b["player"]["name"] == "Anthony Edwards" and b["nominator"] == "Lode" and b["ts"] > 0
+    assert body["state"]["rev"] > rev and body["state"]["picks"] == []
+    assert body["state"]["on_the_clock"] == "Lode"          # nominating does not move the turn
+
+
+def test_nominate_unsure_then_click_nominates(client):
+    r = cmd(client, "nominate steph").json()
+    assert r["kind"] == "ambiguous" and r["action"] == "nominate" and block(client) is None
+    castle = next(c["player"]["id"] for c in r["candidates"] if c["player"]["name"] == "Stephon Castle")
+    r2 = client.post("/api/nominate", json={"player_id": castle, "source": "click"}).json()
+    assert r2["ok"] and r2["state"]["block"]["player"]["name"] == "Stephon Castle"
+    assert r2["state"]["block"]["source"] == "click"
+
+
+def test_nominate_while_occupied_is_refused(client):
+    cmd(client, "nominate anthony edwards")
+    rev = state(client)["rev"]
+    r = cmd(client, "nominate jokic")
+    assert r.status_code == 409
+    assert r.json()["message"] == "Anthony Edwards is on the block: say sold or undo."
+    # an unsure name gives the same error instead of candidates
+    assert cmd(client, "nominate steph").status_code == 409
+    r = client.post("/api/nominate", json={"player_id": pid(client, "Nikola Jokic")})
+    assert r.status_code == 409 and "on the block" in r.json()["message"]
+    assert block(client)["player"]["name"] == "Anthony Edwards" and state(client)["rev"] == rev
+
+
+def test_nominate_taken_player_is_refused(client):
+    cmd(client, "jokic to rj for 30")
+    r = client.post("/api/nominate", json={"player_id": pid(client, "Nikola Jokic")})
+    assert r.status_code == 409 and "already drafted" in r.json()["message"]
+    assert block(client) is None
+    assert client.post("/api/nominate", json={}).status_code == 400
+    assert client.post("/api/nominate", json={"player_id": "nope"}).status_code == 404
+
+
+def test_sold_turns_the_block_into_a_pick(client):
+    cmd(client, "turn lode")
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, "sold to RJ for 5$")
+    assert r.status_code == 200, r.json()
+    body = r.json()
+    assert body["ok"] and body["kind"] == "pick" and body["sold"]
+    assert body["message"].startswith("Sold:")
+    s = body["state"]
+    p = s["picks"][-1]
+    assert (p["name"], p["team"], p["price"]) == ("Anthony Edwards", "RJ", 5)
+    assert s["block"] is None and s["on_the_clock"] == "Notto"     # turn advances as with a pick
+    # undo of that pick works unchanged, and does not bring the block back
+    u = cmd(client, "undo").json()
+    assert u["ok"] and u["kind"] == "undo" and u["state"]["picks"] == []
+    assert u["state"]["on_the_clock"] == "Lode" and u["state"]["block"] is None
+
+
+def test_sold_without_amount_prompts_for_the_block_player(client):
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, "sold to rj").json()
+    assert r["kind"] == "need_amount" and r["team"] == "RJ" and r["sold"]
+    assert r["player"]["name"] == "Anthony Edwards" and block(client) is not None
+    r2 = client.post("/api/pick", json={"player_id": r["player"]["id"], "team": "RJ",
+                                        "price": 7}).json()
+    assert r2["ok"] and r2["state"]["block"] is None and r2["state"]["picks"][-1]["price"] == 7
+
+
+@pytest.mark.parametrize("text,status", [("sold to rj for 195", 409),      # over max bid
+                                         ("sold to nobody for 5", 400),   # unknown team
+                                         ("sold to rj for 201", 400)])    # out of range
+def test_sold_invalid_keeps_the_block(client, text, status):
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, text)
+    assert r.status_code == status and not r.json()["ok"]
+    s = state(client)
+    assert s["picks"] == [] and s["block"]["player"]["name"] == "Anthony Edwards"
+
+
+def test_sold_to_a_full_team_keeps_the_block(client):
+    ps = client.get("/api/players").json()["players"]
+    first13 = [p for p in ps if p["name"] != "Anthony Edwards"][:13]
+    for p in first13:
+        client.post("/api/pick", json={"player_id": p["id"], "team": "Dave", "price": 1})
+    cmd(client, "nominate anthony edwards")
+    before = block(client)
+    assert before["player"]["name"] == "Anthony Edwards"
+    r = cmd(client, "sold to dave for 1")
+    assert r.status_code == 409 and "13" in r.json()["message"]
+    assert block(client) == before and len(state(client)["picks"]) == 13
+
+
+def test_sold_with_an_empty_block(client):
+    r = cmd(client, "sold to RJ for 5")
+    assert r.status_code == 400 and r.json()["message"] == "Nobody is on the block."
+    assert state(client)["picks"] == []
+
+
+@pytest.mark.parametrize("text", ["undo", "undo 3"])
+def test_typed_undo_with_a_block_clears_only_the_block(client, text):
+    cmd(client, "jokic to rj for 30")
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, text).json()
+    assert r["ok"] and r["kind"] == "unblock" and "off the block" in r["message"]
+    s = r["state"]
+    assert s["block"] is None and len(s["picks"]) == 1
+    # the next undo removes the pick again
+    assert cmd(client, "undo").json()["kind"] == "undo"
+
+
+def test_undo_button_and_clear_route_with_a_block(client):
+    cmd(client, "jokic to rj for 30")
+    cmd(client, "nominate anthony edwards")
+    r = client.post("/api/undo", json={"count": 1}).json()
+    assert r["kind"] == "unblock" and len(r["state"]["picks"]) == 1
+    cmd(client, "nominate anthony edwards")
+    r = client.post("/api/block/clear", json={}).json()
+    assert r["ok"] and r["state"]["block"] is None and len(r["state"]["picks"]) == 1
+    assert client.post("/api/block/clear", json={}).status_code == 400
+
+
+def test_back_to_here_removes_picks_even_with_a_block(client):
+    for t in ("jokic to rj for 30", "curry to miele for 40"):
+        cmd(client, t)
+    cmd(client, "nominate anthony edwards")
+    first = state(client)["picks"][0]["seq"]
+    r = client.post("/api/undo", json={"to_seq": first}).json()
+    assert r["kind"] == "undo" and len(r["state"]["picks"]) == 1
+    assert r["state"]["block"]["player"]["name"] == "Anthony Edwards"
+
+
+def test_one_step_pick_clears_the_block_only_for_the_same_player(client):
+    cmd(client, "nominate curry")
+    r = cmd(client, "jokic to rj for 10").json()
+    assert r["ok"] and r["state"]["block"]["player"]["name"] == "Stephen Curry"
+    r = cmd(client, "curry to rj for 10").json()
+    assert r["ok"] and r["state"]["block"] is None
+
+
+def test_block_survives_a_restart(make_client, tmp_path):
+    db = tmp_path / "block.db"
+    c1 = make_client(db=db)
+    cmd(c1, "turn ceun")
+    cmd(c1, "nominate anthony edwards")
+    c2 = make_client(db=db)
+    b = block(c2)
+    assert b["player"]["name"] == "Anthony Edwards" and b["nominator"] == "Ceun"
+    assert cmd(c2, "sold to rj for 5").json()["ok"] and block(c2) is None
+
+
+def test_reset_clears_the_block(client):
+    cmd(client, "nominate anthony edwards")
+    r = client.post("/api/reset", json={"confirm": "NEW DRAFT"}).json()
+    assert r["ok"] and r["state"]["block"] is None
+
+
+def test_typed_nominate_of_a_drafted_player_does_not_block_him(client):
+    cmd(client, "jokic to rj for 30")
+    r = cmd(client, "nominate jokic")
+    b = block(client)
+    # only available players are searched (F-34): Jokic is never put on the block
+    assert b is None or b["player"]["name"] != "Nikola Jokic"
+    assert all(c["player"]["name"] != "Nikola Jokic" for c in r.json().get("candidates") or [])
+
+
+def test_failed_nominate_error_carries_the_action_to_the_client(client):
+    r = cmd(client, "nominate zzqx")
+    assert r.status_code == 400 and r.json()["action"] == "nominate" and block(client) is None
+
+
+def test_rename_follows_the_block_nominator(client):
+    cmd(client, "turn miele")
+    cmd(client, "nominate anthony edwards")
+    teams = [("Emiel" if t["name"] == "Miele" else t["name"]) for t in state(client)["teams"]]
+    r = client.post("/api/settings", json={"teams": teams}).json()
+    assert r["ok"] and r["state"]["block"]["nominator"] == "Emiel"
+    assert client.get("/api/export").json()["block"]["nominator"] == "Emiel"
+
+
+def test_block_is_in_the_export(client):
+    cmd(client, "nominate anthony edwards")
+    assert client.get("/api/export").json()["block"]["player"]["name"] == "Anthony Edwards"

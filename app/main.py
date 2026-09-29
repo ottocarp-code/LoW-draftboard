@@ -15,7 +15,10 @@ Routes (FRD section 8, plus multi-undo and reset):
     GET  /api/state             budgets, max bids, picks, rosters, turn, rev
     POST /api/command           {text, source}  free text through the parser
     POST /api/pick              {player_id, team, price, source}
-    POST /api/undo              {} | {count} | {to_seq}
+    POST /api/nominate          {player_id, source}  put a player on the block (candidate click)
+    POST /api/block/clear       {}  take the player off the block (picks untouched)
+    POST /api/undo              {} | {count} | {to_seq}  with a block, {} / {count} clears
+                                the block only; {to_seq} always removes picks
     POST /api/turn              {team} to set, {} or {step: 1} to skip, {step: -1} to go back
     POST /api/settings          {teams?, nom_order?, me?, aliases?}  aliases: {team: [nickname]}
     POST /api/voice/heartbeat   {model, muted?}  from voice/listen.py; returns {muted}
@@ -67,13 +70,36 @@ def create_app(db_path=None, values_path=None, headshots=None):
     def ok(kind, message, **extra):
         return {"ok": True, "kind": kind, "message": message, **extra, "state": store.state()}
 
-    def do_pick(player_id, team, price, source):
+    def do_pick(player_id, team, price, source, sold=False):
         try:
             player, price = store.add_pick(player_id, team, price, source)
         except DraftError as e:
             return fail(e.message, e.status)
-        return ok("pick", f'{player["name"]} to {team} for ${price}.',
-                  player=public(player), team=team, price=price)
+        msg = f'{player["name"]} to {team} for ${price}.'
+        return ok("pick", f"Sold: {msg}" if sold else msg,
+                  player=public(player), team=team, price=price, sold=sold)
+
+    def do_nominate(player_id, source):
+        try:
+            player, nominator = store.nominate(player_id, source)
+        except DraftError as e:
+            return fail(e.message, e.status)
+        return ok("nominate", f'{player["name"]} is on the block (nominated by {nominator}).',
+                  player=public(player), nominator=nominator)
+
+    def do_clear_block():
+        block = store.clear_block()
+        if not block:
+            return fail("Nobody is on the block.", 400)
+        return ok("unblock", f'{block.get("name") or "The player"} is off the block.',
+                  player={"id": block["player_id"], "name": block.get("name")})
+
+    def block_taken():
+        """The occupied-block error, or None when the block is free."""
+        b = store.block
+        if b:
+            return fail(f'{b.get("name") or "A player"} is on the block: say sold or undo.', 409)
+        return None
 
     def do_undo(count=None, to_seq=None):
         try:
@@ -110,9 +136,10 @@ def create_app(db_path=None, values_path=None, headshots=None):
             if store.voice_state()["muted"]:
                 # The listener honours mute itself; this guards a stale listener.
                 return {"ok": False, "kind": "muted", "message": "Voice is muted."}
-            if cmdparser.parse_command(text)["kind"] == "undo":
+            if cmdparser.parse_command(text)["kind"] == "undo" and not store.block:
                 # Undo of picks is typing or clicking only, never by voice (plan boundary):
-                # a misheard "undo" must not remove a pick.
+                # a misheard "undo" must not remove a pick. With a player on the block a
+                # voice undo goes through, and run_command then only clears the block.
                 res = fail("Undo picks by typing.", 400)
             else:
                 res = run_command(text, source)
@@ -145,13 +172,35 @@ def create_app(db_path=None, values_path=None, headshots=None):
                         "message": f'Amount missing for {res["player"]["name"]} to {res["team"]}.'}
 
             if kind == "ambiguous":
-                return {"ok": False, "kind": "ambiguous", "team": res["team"],
-                        "amount": res["amount"], "query": res["query"],
+                if res["action"] == "nominate" and store.block:
+                    return block_taken()
+                return {"ok": False, "kind": "ambiguous", "action": res["action"],
+                        "team": res["team"], "amount": res["amount"], "query": res["query"],
                         "candidates": [{"score": c["score"], "player": public(c["player"])}
                                        for c in res["candidates"]],
-                        "message": f'Which player do you mean by "{res["query"]}"?'}
+                        "message": (f'Which player do you want to nominate by "{res["query"]}"?'
+                                    if res["action"] == "nominate" else
+                                    f'Which player do you mean by "{res["query"]}"?')}
+
+            if kind == "nominate":
+                return do_nominate(res["player"]["id"], source)
+
+            if kind == "sold":
+                player = store.block_player()
+                if not player:
+                    if store.block:          # the player vanished from values.json
+                        return fail("The player on the block is no longer in the pool.", 409)
+                    return fail("Nobody is on the block.", 400)
+                if res["amount"] is None:
+                    return {"ok": False, "kind": "need_amount", "player": public(player),
+                            "team": res["team"], "sold": True,
+                            "message": f'Amount missing: {player["name"]} sold to {res["team"]} for?'}
+                return do_pick(player["id"], res["team"], res["amount"], source, sold=True)
 
             if kind == "undo":
+                if store.block:
+                    # The block is not a pick: undo takes the player off the block and stops.
+                    return do_clear_block()
                 if res["count"] == 1:
                     return do_undo(1)
                 try:
@@ -182,6 +231,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
                                            for c in res["candidates"]]
                 if res.get("teams"):
                     extra["teams"] = res["teams"]
+                if res.get("action"):
+                    extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)
 
             if kind == "empty":
@@ -196,13 +247,27 @@ def create_app(db_path=None, values_path=None, headshots=None):
         return do_pick(str(payload["player_id"]), str(payload["team"]), payload["price"],
                        str(payload.get("source") or "click")[:16])
 
+    @app.post("/api/nominate")
+    def nominate(payload: dict = Body(...)):
+        if payload.get("player_id") in (None, ""):
+            return fail("player_id is missing.", 400)
+        return do_nominate(str(payload["player_id"]), str(payload.get("source") or "click")[:16])
+
+    @app.post("/api/block/clear")
+    def block_clear():
+        return do_clear_block()
+
     @app.post("/api/undo")
     def undo(payload: dict = Body(default={})):
         payload = payload or {}
         try:
             if payload.get("to_seq") is not None:
                 return do_undo(to_seq=int(payload["to_seq"]))
-            return do_undo(count=int(payload.get("count", 1)))
+            count = int(payload.get("count", 1))
+            with store.lock:
+                if store.block:
+                    return do_clear_block()
+                return do_undo(count=count)
         except (TypeError, ValueError):
             return fail("count and to_seq must be whole numbers.", 400)
 

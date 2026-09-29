@@ -9,10 +9,13 @@ Grammar (F-29), English, an optional wake word in front:
     <player> to <team> <amount>          (for is optional)
     <player> mine [for] <amount>
     <player> to <team>                   (no amount -> amount prompt)
+    nominate <player>                    (puts the player on the block)
+    sold to <team> for <amount>          (the block player becomes a pick; for is optional)
+    sold to <team>                       (no amount -> amount prompt)
     turn <team>
     skip
     go back                              (turn to the previous team; also: back, previous)
-    undo [N]
+    undo [N]                             (with a player on the block: clears the block only)
 
 Wake words `draftbot` and `low-db` (plus transcription variants) are stripped.
 Amounts are digits or English number words, with `$`, `dollar(s)` or `bucks`
@@ -200,9 +203,46 @@ def phon(s):
     return re.sub(r"(.)\1+", r"\1", s)
 
 
+def vkey(s):
+    """
+    phon() with every vowel folded to one: Whisper mostly gets the consonants of a
+    name right and the vowels wrong (alparan ~ alperen, senghan ~ sengun, rosen ~ rozan).
+    """
+    return re.sub(r"(.)\1+", r"\1", re.sub(r"[aeiou]", "a", phon(s)))
+
+
+# A leading article that Whisper splits off a surname ("the rosen" = DeRozan).
+_ARTICLES = {"the", "de", "da", "di", "le", "la", "du", "van", "von"}
+# Nickname endings: wemby, steffie, ... -> the stem is a surname prefix.
+_NICK_END = re.compile(r"(?:y|ie|ee)$")
+
+
+def _variants(q):
+    """The query plus its article-merged forms: "the rosen" -> therosen, derosen."""
+    toks = q.split()
+    out = [q]
+    if len(toks) >= 2 and toks[0] in _ARTICLES:
+        rest = " ".join(toks[2:])
+        for art in dict.fromkeys([toks[0], "de" if toks[0] == "the" else toks[0]]):
+            out.append((art + toks[1] + (" " + rest if rest else "")))
+    return out
+
+
+def _prefix_score(n):
+    return 0.80 + min(n, 8) / 40
+
+
+def _token_score(qt, nt):
+    """One query token against one name token (token-by-token alignment)."""
+    s = max(dice(qt, nt), 0.95 * dice(phon(qt), phon(nt)), 0.90 * dice(vkey(qt), vkey(nt)))
+    if len(qt) >= 3 and nt.startswith(qt):
+        s = max(s, _prefix_score(len(qt)))        # "ant" edwards = anthony edwards
+    return s
+
+
 class Name:
     """Precomputed match keys for one player."""
-    __slots__ = ("n", "lasts", "ph", "ph_lasts", "sx")
+    __slots__ = ("n", "toks", "lasts", "ph", "ph_lasts", "vk_lasts", "sx")
 
     def __init__(self, name):
         n = normalize(name)
@@ -213,26 +253,45 @@ class Name:
         if len(toks) > 1:
             lasts.append("".join(toks[1:]))          # "de rozan" style surnames
         self.n = n
+        self.toks = toks
         self.lasts = list(dict.fromkeys(lasts))
         self.ph = phon(n)
         self.ph_lasts = [phon(x) for x in self.lasts]
+        self.vk_lasts = [vkey(x) for x in self.lasts]
         self.sx = {soundex(x) for x in self.lasts}
+
+
+def _score_one(q, key):
+    qc, qp, qv = q.replace(" ", ""), phon(q), vkey(q)
+    s = dice(q, key.n)
+    for last, pl, vl in zip(key.lasts, key.ph_lasts, key.vk_lasts):
+        # The vowel-folded key alone is too loose on short surnames (rosen ~ duren),
+        # so it only counts blended with the phonetic key.
+        s = max(s, 0.98 * dice(q, last), 0.97 * dice(qc, last), 0.95 * dice(qp, pl),
+                0.90 * (0.7 * dice(qv, vl) + 0.3 * dice(qp, pl)))
+    s = max(s, 0.96 * dice(qp, key.ph))
+    if len(qc) >= 3 and (key.n.startswith(q) or any(x.startswith(qc) for x in key.lasts)):
+        s = max(s, _prefix_score(len(qc)))
+    # Nickname form: "wemby" -> stem "wemb", a prefix of a surname.
+    qt = q.split()
+    if len(qt) == 1:
+        stem = _NICK_END.sub("", qc)
+        # A stem of 4+ letters: "gary" -> "gar" would hit Garland, "jerry" -> Jerome.
+        if stem != qc and len(stem) >= 4 and any(x.startswith(stem) for x in key.lasts):
+            s = max(s, _prefix_score(len(stem)) - 0.02)
+    # Token-by-token alignment when the query has as many words as the name.
+    if len(qt) >= 2 and len(qt) == len(key.toks):
+        s = max(s, 0.96 * sum(_token_score(a, b) for a, b in zip(qt, key.toks)) / len(qt))
+    if len(qc) >= 4 and soundex(qc) in key.sx:
+        s = max(s, 0.78)
+    return s
 
 
 def score_name(q, key):
     """Score in [0, 1] of normalized query q against a Name key."""
     if not q or not key.n:
         return 0.0
-    qc, qp = q.replace(" ", ""), phon(q)
-    s = dice(q, key.n)
-    for last, pl in zip(key.lasts, key.ph_lasts):
-        s = max(s, 0.98 * dice(q, last), 0.97 * dice(qc, last), 0.95 * dice(qp, pl))
-    s = max(s, 0.96 * dice(qp, key.ph))
-    if len(qc) >= 3 and (key.n.startswith(q) or any(x.startswith(qc) for x in key.lasts)):
-        s = max(s, 0.80 + min(len(qc), 8) / 40)
-    if len(qc) >= 4 and soundex(qc) in key.sx:
-        s = max(s, 0.78)
-    return min(s, 1.0)
+    return min(max(_score_one(v, key) for v in _variants(q)), 1.0)
 
 
 # Thresholds (F-35): below FOUND nothing is proposed; a top score below SURE, or a
@@ -313,7 +372,32 @@ def parse_command(raw):
     if t in ("go back", "back", "previous", "prev", "vorige"):
         return {"kind": "back"}
 
-    m = re.match(r"^(?:turn|clock|nominate|beurt)\s+(?:to\s+|is\s+)?(.+)$", t)
+    # nominate <player>: never a turn command (turns are turn/clock/beurt, skip, go back).
+    m = re.match(r"^nominate(?:s|d)?(?:\s+(.+))?$", t)
+    if m:
+        if not m.group(1):
+            return {"kind": "error", "message": "Nominate which player?"}
+        return {"kind": "nominate", "name": m.group(1)}
+
+    # sold [to] <team> [for] <amount>   /   sold [to] <team>
+    m = re.match(r"^sold(?:\s+(.+))?$", t)
+    if m:
+        rest = re.sub(r"^(?:to|2)(?:\s+|$)", "", m.group(1) or "")
+        if not rest:
+            return {"kind": "error", "message": "Sold to which team?"}
+        m2 = re.match(r"^(.+?)\s+(?:for|at)\s+(.+)$", rest)
+        if m2:
+            cmd = _pick(None, m2.group(1), m2.group(2))
+        else:
+            team, amount = _split_trailing_amount(rest)
+            cmd = {"kind": "pick", "name": None, "team": team, "amount": amount,
+                   "amount_text": None}
+        if cmd["kind"] == "error":
+            return cmd
+        return {"kind": "sold", "team": cmd["team"], "amount": cmd["amount"],
+                "amount_text": cmd["amount_text"]}
+
+    m = re.match(r"^(?:turn|clock|beurt)\s+(?:to\s+|is\s+)?(.+)$", t)
     if m:
         return {"kind": "turn", "team": m.group(1)}
 
@@ -365,7 +449,17 @@ def interpret(raw, pool, teams, me, budget, aliases=None):
             return _team_error(cmd["team"], why, teams)
         return {"kind": "turn", "team": team}
 
-    if kind != "pick":
+    if kind == "nominate":
+        found = _resolve_player(cmd["name"], pool)
+        if found["kind"] == "ambiguous":
+            found.update(action="nominate", team=None, amount=None)
+            return found
+        if found["kind"] == "error":
+            found["action"] = "nominate"      # a "Closest:" click nominates, not picks
+            return found
+        return {"kind": "nominate", "player": found["player"], "score": found["score"]}
+
+    if kind not in ("pick", "sold"):
         return cmd
 
     team, why = match_team(cmd["team"], teams, me, aliases)
@@ -376,23 +470,41 @@ def interpret(raw, pool, teams, me, budget, aliases=None):
     if amount is not None and not (0 < amount <= budget):
         return {"kind": "error", "message": f"Amount ${amount} is out of range (1-{budget})."}
 
-    cands = match_player(cmd["name"], pool)
-    if not cands or cands[0][0] < FOUND:
-        return {"kind": "error", "message": f'No available player found for "{cmd["name"]}".',
-                "candidates": [{"score": round(s, 3), "player": p}
-                               for s, p in cands[:3] if s >= SHOW]}
+    if kind == "sold":
+        # The player is the one on the block; the caller (main.py) knows who that is.
+        return {"kind": "sold", "team": team, "amount": amount}
 
-    top_s, top_p = cands[0]
-    close = len(cands) > 1 and top_s - cands[1][0] < GAP
-    if top_s < SURE or close:
-        return {"kind": "ambiguous", "team": team, "amount": amount, "query": cmd["name"],
-                "candidates": [{"score": round(s, 3), "player": p}
-                               for s, p in cands if s >= SHOW]}
+    found = _resolve_player(cmd["name"], pool)
+    if found["kind"] == "ambiguous":
+        found.update(action="pick", team=team, amount=amount)
+        return found
+    if found["kind"] == "error":
+        return found
+    top_p, top_s = found["player"], found["score"]
 
     if amount is None:
         return {"kind": "need_amount", "player": top_p, "team": team, "score": round(top_s, 3)}
     return {"kind": "pick", "player": top_p, "team": team, "amount": amount,
-            "score": round(top_s, 3)}
+            "score": top_s}
+
+
+def _resolve_player(name, pool):
+    """
+    One player for a name, F-35 style: {kind: found, player, score}, or ambiguous
+    with candidates (low top score, or a runner-up within GAP), or an error.
+    """
+    cands = match_player(name, pool)
+    if not cands or cands[0][0] < FOUND:
+        return {"kind": "error", "message": f'No available player found for "{name}".',
+                "candidates": [{"score": round(s, 3), "player": p}
+                               for s, p in cands[:3] if s >= SHOW]}
+    top_s, top_p = cands[0]
+    close = len(cands) > 1 and top_s - cands[1][0] < GAP
+    if top_s < SURE or close:
+        return {"kind": "ambiguous", "query": name,
+                "candidates": [{"score": round(s, 3), "player": p}
+                               for s, p in cands if s >= SHOW]}
+    return {"kind": "found", "player": top_p, "score": round(top_s, 3)}
 
 
 def _team_error(q, why, teams):

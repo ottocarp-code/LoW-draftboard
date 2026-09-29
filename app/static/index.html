@@ -13,7 +13,7 @@
   <img src="/static/logo.png" alt="League of Wildcards" class="logo">
   <h1>Draftboard</h1>
   <input id="cmd" autocomplete="off" spellcheck="false" aria-label="Command"
-         placeholder="derozan to emiel for 13   ·   jokic mine 40   ·   turn roro   ·   skip   ·   go back   ·   undo">
+         placeholder="nominate edwards   ·   sold to rj for 5   ·   derozan to emiel for 13   ·   jokic mine 40   ·   turn roro   ·   skip   ·   undo">
   <div class="seg" id="viewSeg" role="group" aria-label="View">
     <button type="button" data-view="board" aria-pressed="true">Board</button>
     <button type="button" data-view="teams" aria-pressed="false">Teams</button>
@@ -23,7 +23,7 @@
     <button type="button" data-sort="value" aria-pressed="false" title="Our value">Value</button>
   </div>
   <button type="button" id="layoutBtn" class="boardonly" title="Switch between cards and list">List</button>
-  <button type="button" id="undoBtn" title="Remove the last pick">Undo</button>
+  <button type="button" id="undoBtn" title="Remove the last pick (with a player on the block: clear the block)">Undo</button>
   <button type="button" id="voiceBtn" class="voice off" aria-pressed="false"
           title="Voice listener (py voice/listen.py). Click to mute or unmute.">
     <span class="dot" aria-hidden="true"></span><span id="voiceLabel">voice off</span></button>
@@ -37,6 +37,7 @@
 </div>
 <div id="voicebar" hidden aria-live="polite"></div>
 <div id="banner" hidden></div>
+<div id="block" hidden aria-live="polite"></div>
 
 <div class="shell">
   <aside id="history">

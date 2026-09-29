@@ -9,5 +9,8 @@ if "%LOW_VALUES%"=="" if not exist "output\values.json" (
   echo Draai eerst:  py tool\fetch_espn.py   en dan   py tool\build_values.py
   echo De app start toch, en toont dezelfde melding tot het bestand er is.
 )
-py -m uvicorn main:app --app-dir app --host 127.0.0.1 --port 8000
+REM Met een venv in .venv draait de app op die Python, anders op py.
+set "PY=py"
+if exist ".venv\Scripts\python.exe" set "PY=.venv\Scripts\python.exe"
+"%PY%" -m uvicorn main:app --app-dir app --host 127.0.0.1 --port 8000
 pause

@@ -32,3 +32,17 @@
 - **Checks:** 210 tests zijn groen. End-to-end met synthetische spraak: ongeveer 1,6 s van einde zin tot pick met base.en (small.en ongeveer 5 s). De review leverde 8 fixes op: dubbele pick via de banner, het "pauze na low-db"-venster geschrapt omdat het zinnen zonder wake word doorstuurde, kalibratie, mute, fillers, het hotwordbudget en de README. 3 bevindingen zijn afgewezen.
 - **Keuze:** Undo van picks gaat enkel via typen (heronderhandeld door de gebruiker tijdens de bouw). De test met de echte stem, headset en zaal gebeurt door de gebruiker.
 - **Aanpassingen:** `voice/` (listen, wake, calibrate), bijnamen in de settings en de parser, de spraakbanner en micro-indicator, de routes `/api/voice/*`. Ook `.claude/STATE.md` is aangemaakt. Het volgende plan is nominate/sold.
+
+## 2026-09-28 — Einde sessie
+
+- **Stand:** De rebuild en de spraakbesturing zijn gebouwd en gepusht (`a6db255`). De gebruiker heeft spraak getest met de headset: de zin kwam 0,7 s na het einde van de zin binnen. `nominate curry` faalt nog, zoals verwacht, want nominate/sold is nog niet gebouwd.
+- **Volgende stap:** Het plan voor nominate/sold via `/bmad-build`. Alle beslissingen staan in `_bmad-output/deferred-work.md` en `.claude/STATE.md`. Daarna de kalibratierun van de gebruiker.
+- **Open in de werkboom:** `run.bat` gebruikt nu de `.venv`, en `.gitignore` negeert `.venv/`. Beide zijn nog niet gecommit.
+
+## 2026-09-29 — Spraak: nauwkeurigheid en snelheid (actieplan)
+
+- **Probleem:** Test en kalibratie van spraak gaven slechte resultaten. De vraag was of een ander wake word en andere teamnamen helpen, en of de performance beter kan.
+- **Checks:** Het meeste uit de aangereikte lijst zit er al in (faster-whisper, int8, en, VAD, beam 1). De laptop heeft geen NVIDIA GPU. Bench met TTS: base.en 0,66 s, small.en 2,5 s en 2,0 s met 8 threads. 60 spelers als hotwords kosten 0,1 tot 0,6 s.
+- **Keuze:** Eerst meten op echte opnames. Daarna komen de quick wins, dan een Engels wake word en call signs per team, en pas dan de modelkeuze (distil-small.en, fallback). GPU, turbo en CoreML vallen af.
+- **Aanpassingen:** Het plan staat in `_bmad-output/plan-voice-accuracy.md`. Er is nog geen code gewijzigd.
+- **Overleg:** De gebruiker kiest de gelaagde modelopzet. base.en draait altijd, en small.en neemt pas over als team of speler niet duidelijk matcht. Zo komt de winst in nauwkeurigheid zonder vaste vertraging. Met distil-small.en en beam 5 in de fallback beslist de bench.

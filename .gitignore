@@ -20,3 +20,6 @@ skills-lock.json
 
 # Old app (kept locally for reference)
 _legacy/
+
+# Virtual environment
+.venv/

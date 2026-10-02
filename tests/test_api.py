@@ -681,10 +681,39 @@ def test_voice_event_carries_team_candidates(client):
     assert r2["ok"] and r2["sold"] and (p["team"], p["price"], p["source"]) == ("Gillese", 5, "voice-click")
 
 
-def test_failed_sold_pins_the_block_player_for_the_buttons(client):
+def test_failed_sold_names_the_block_player_for_the_buttons(client):
     cmd(client, "nominate anthony edwards")
+    edwards = block(client)["player"]["id"]
     body = cmd(client, "sold to gin for 5").json()
-    assert body["action"] == "sold" and body["player"]["name"] == "Anthony Edwards"
-    # a failed pick names no block player: its buttons re-match the heard player
+    assert body["action"] == "sold" and body["block_player_id"] == edwards
+    # a failed pick has nothing on the block to pin
     body = cmd(client, "jayson tatum to gin for 5").json()
-    assert body["action"] == "pick" and "player" not in body
+    assert body["action"] == "pick" and "block_player_id" not in body
+
+
+def _click(client, body, team):
+    return client.post("/api/command", json={"text": body["command"], "team": team,
+                                             "expect_block": body["block_player_id"],
+                                             "source": "click"})
+
+
+def test_team_button_sells_when_the_block_is_unchanged(client):
+    cmd(client, "nominate anthony edwards")
+    r = _click(client, cmd(client, "sold to gin for 5").json(), "Gillese")
+    p = r.json()["state"]["picks"][-1]
+    assert r.status_code == 200 and (p["name"], p["team"], p["price"]) == ("Anthony Edwards", "Gillese", 5)
+
+
+@pytest.mark.parametrize("first", [None, "nominate jayson tatum"])
+def test_stale_team_button_never_sells_another_player(client, first):
+    # review: heard with nobody (or Tatum) on the block, clicked after Edwards was nominated
+    if first:
+        cmd(client, first)
+    body = cmd(client, "sold to gin for 5").json()
+    if first:
+        cmd(client, "undo")                       # clears the block only
+    cmd(client, "nominate anthony edwards")
+    r = _click(client, body, "Gillese")
+    assert r.status_code == 409 and "changed" in r.json()["message"]
+    s = state(client)
+    assert s["picks"] == [] and s["block"]["player"]["name"] == "Anthony Edwards"

@@ -336,10 +336,11 @@ def _team_names(t, aliases):
     return [n for n in [normalize(t)] + [normalize(a) for a in (aliases or {}).get(t) or []] if n]
 
 
-def _best_team_score(queries, t, aliases):
-    """Best fuzzy score over the query forms (with and without a leading article), so a
-    misspelled "the dud" still finds the nickname "the dude" and "dud" the team "Dude"."""
-    return max(_team_score(q, n) for q in dict.fromkeys(queries) if q for n in _team_names(t, aliases))
+def _fuzzy_team_score(q, t, aliases):
+    """Fuzzy score with a leading article ignored on both sides: "the dud" against the
+    nickname "the dude" is "dud" against "dude". Without articles this is _team_score."""
+    q = _drop_article(q)
+    return max(_team_score(q, _drop_article(n)) for n in _team_names(t, aliases))
 
 
 def team_candidates(query, teams, aliases=None, n=3):
@@ -347,8 +348,7 @@ def team_candidates(query, teams, aliases=None, n=3):
     raw = normalize(query)
     if not raw:
         return []
-    scored = sorted(((_best_team_score((raw, _drop_article(raw)), t, aliases), t) for t in teams),
-                    key=lambda x: -x[0])
+    scored = sorted(((_fuzzy_team_score(raw, t, aliases), t) for t in teams), key=lambda x: -x[0])
     return [(t, round(s, 3)) for s, t in scored[:n] if s > 0]
 
 
@@ -372,7 +372,7 @@ def match_team(query, teams, me=None, aliases=None):
             names = _team_names(t, aliases)
             if exact in names:
                 return t, "exact" if exact == names[0] else "alias"
-    scored = [(_best_team_score((raw, q), t, aliases), t) for t in teams]
+    scored = [(_fuzzy_team_score(raw, t, aliases), t) for t in teams]
     scored.sort(key=lambda x: -x[0])
     if not scored or scored[0][0] < 0.5:
         return None, "unknown"

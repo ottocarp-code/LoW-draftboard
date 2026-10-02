@@ -132,8 +132,12 @@ def create_app(db_path=None, values_path=None, headshots=None):
         source = str(payload.get("source") or "typed")[:16]
         # `team`: a team chosen from team_candidates, overriding the command's team text.
         team = str(payload.get("team") or "")[:40] or None
+        # `expect_block`: the block player id (or "") a team button was offered for; a
+        # sold is refused when the block has changed since (stale button, any screen).
+        expect = payload.get("expect_block")
+        expect = None if expect is None else str(expect)[:40]
         if source != "voice":
-            return run_command(text, source, team)
+            return run_command(text, source, team, expect)
         with store.lock:
             if store.voice_state()["muted"]:
                 # The listener honours mute itself; this guards a stale listener.
@@ -144,7 +148,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 # voice undo goes through, and run_command then only clears the block.
                 res = fail("Undo picks by typing.", 400)
             else:
-                res = run_command(text, source, team)
+                res = run_command(text, source, team, expect)
             body, status = res, 200
             if isinstance(res, JSONResponse):
                 body, status = json.loads(res.body), res.status_code
@@ -159,7 +163,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 out["state"] = store.state()          # includes the new voice event
             return JSONResponse(out, status_code=status)
 
-    def run_command(text, source, team=None):
+    def run_command(text, source, team=None, expect_block=None):
         with store.lock:
             res = cmdparser.interpret(text, store.available(), store.teams, store.me,
                                       store.pool.league()["budget"], store.aliases,
@@ -190,6 +194,9 @@ def create_app(db_path=None, values_path=None, headshots=None):
 
             if kind == "sold":
                 player = store.block_player()
+                if expect_block is not None and expect_block != (player["id"] if player else ""):
+                    return fail("The player on the block changed since this was heard: "
+                                "give the sale again.", 409)
                 if not player:
                     if store.block:          # the player vanished from values.json
                         return fail("The player on the block is no longer in the pool.", 409)
@@ -237,11 +244,11 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 if res.get("team_candidates"):
                     # the buttons run this same command again with `team` set
                     extra.update(team_candidates=res["team_candidates"], command=text)
-                    block_player = store.block_player()
-                    if res.get("action") == "sold" and block_player:
-                        # who was on the block when it was heard: a later click on a
-                        # stale button must not sell a different player (client checks)
-                        extra["player"] = public(block_player)
+                    if res.get("action") == "sold":
+                        # who was on the block when it was heard ("" = nobody); the
+                        # buttons send it back as expect_block (see the sold branch)
+                        block_player = store.block_player()
+                        extra["block_player_id"] = block_player["id"] if block_player else ""
                 if res.get("action"):
                     extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)

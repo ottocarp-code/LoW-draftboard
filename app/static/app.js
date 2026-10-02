@@ -175,28 +175,23 @@ function handle(res, fromPrompt = false){
     default:
       say(res.message || "Something went wrong.", "err");
       if(res.candidates && res.candidates.length) candidatePrompt(res.candidates, null, null, "Closest:", res.action);
-      else if(res.team_candidates && res.team_candidates.length) teamPrompt(res.team_candidates, res.command, res.player);
+      else if(res.team_candidates && res.team_candidates.length) teamPrompt(res.team_candidates, res.command, res.block_player_id);
   }
 }
 
 /* Team not recognised: the closest teams as buttons. Each one runs the same command
-   again with `team` set (no rebuilt text), so player and amount stay as typed. */
-/* A failed "sold" carries the player who was on the block then; a button clicked
-   after the block changed must not sell someone else. */
-function blockChanged(player){
-  return !!player && !(STATE && STATE.block && String(STATE.block.player.id) === String(player.id));
-}
-const BLOCK_CHANGED = "The player on the block changed since this was heard: give the sale again.";
+   again with `team` set (no rebuilt text), so player and amount stay as typed. A failed
+   "sold" also names the block player it was heard for (block_player_id, "" = nobody);
+   sent back as expect_block, the server refuses the sale when the block changed since. */
 function teamButtons(cands, run){
   return cands.map(c => h("button", {type: "button", class: "cand", onclick: () => run(c)},
     c.team, " ", h("small", {text: `${Math.round(c.score*100)}%`})));
 }
-function teamPrompt(cands, command, player){
+function teamPrompt(cands, command, blockId){
   const box = $("#prompt");
   box.append(h("span", {class: "muted", text: "Team:"}),
     ...teamButtons(cands, async c => {
-      if(blockChanged(player)){ clearPrompt(); say(BLOCK_CHANGED, "err"); return; }
-      const res = await api("/api/command", {text: command, team: c.team, source: "click"});
+      const res = await api("/api/command", {text: command, team: c.team, expect_block: blockId, source: "click"});
       if(res.ok || ["need_amount", "ambiguous"].includes(res.kind)) $("#cmd").value = "";
       handle(res);
       renderPlayers();
@@ -347,9 +342,8 @@ function renderVoiceBar(ev){
     // A click runs the heard command with that team; a follow-up prompt (which player,
     // how much) continues in the command bar, and the banner is settled on every screen.
     kids.push(...teamButtons(ev.team_candidates, async c => {
-      if(blockChanged(ev.player)){ say(BLOCK_CHANGED, "err"); return; }
       voiceLock(true);
-      const res = await api("/api/command", {text: ev.command, team: c.team, source: "voice-click"});
+      const res = await api("/api/command", {text: ev.command, team: c.team, expect_block: ev.block_player_id, source: "voice-click"});
       handle(res);
       if(res.ok) await voiceResolve(ev, res.message);
       else if(["ambiguous", "need_amount"].includes(res.kind)) await voiceResolve(ev, `${c.team}: continue in the command bar.`);

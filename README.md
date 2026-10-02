@@ -192,6 +192,18 @@ py voice\calibrate.py                         alle teams, base.en en small.en
 py voice\calibrate.py --teams Miele,Ceun --models base.en
 ```
 
+**Testset opnemen.** `voice/record.py` toont een script met echte commando's
+(nominate, sold to elk team en enkele picks, uit de draaiende app) en bewaart per
+take een wav en de verwachte tekst in `data/recordings/<spreker>/` (niet in git).
+Dat is de benchmark voor de spraaknauwkeurigheid. Een tweede run met dezelfde
+`--speaker` gaat verder waar je stopte; neem een nieuwe naam voor een nieuwe set
+(andere micro, ander wake word).
+
+```
+py voice\record.py --speaker otto-laptop      ongeveer 37 commando's
+py voice\record.py --speaker otto-headset --device "Headset"
+```
+
 **Draaien**, naast `run.bat`:
 
 ```

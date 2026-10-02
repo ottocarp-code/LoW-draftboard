@@ -372,3 +372,18 @@ def test_voice_undo_with_a_block_clears_only_the_block(client, text):
     r = cmd(client, text)
     assert r.status_code == 400 and r.json()["message"] == "Undo picks by typing."
     assert len(state(client)["picks"]) == 1
+
+
+# ---------------------------------------------------------------- record.py script
+
+def test_record_script_covers_teams_players_and_picks():
+    from record import build_script
+    teams = ["Miele", "Ceun", "RJ"]
+    players = [f"Player {i}" for i in range(40)]
+    s = build_script(teams, players, n_players=5, n_extra=2, n_picks=2, seed=1)
+    kinds = [x["expect"]["kind"] for x in s]
+    assert kinds.count("nominate") == 7 and kinds.count("sold") == 3 and kinds.count("pick") == 2
+    assert {x["expect"]["team"] for x in s if x["expect"]["kind"] == "sold"} == set(teams)
+    assert all(x["say"].startswith("ok banana ") for x in s)
+    assert len({x["id"] for x in s}) == len(s)                      # ids are unique (resume key)
+    assert s == build_script(teams, players, n_players=5, n_extra=2, n_picks=2, seed=1)

@@ -4,6 +4,7 @@
 *.db-shm
 data/backups/
 data/headshots/
+data/recordings/
 output/
 
 # Python

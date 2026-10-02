@@ -493,18 +493,24 @@ def _pick(name, team, amount_text):
             "amount_text": amount_text}
 
 
-def interpret(raw, pool, teams, me, budget, aliases=None, block=False, team=None):
+def interpret(raw, pool, teams, me, budget, aliases=None, block=None, team=None):
     """
     Interprets a command against the available pool (list of (player, Name)).
     Always returns a dict with `kind`; on doubt `ambiguous` with candidates, never a guess.
-    `block`: a player is on the block, so "<team> for <amount>" means "sold to <team>".
+    `block`: whether a player is on the block (None = not known): "<team> for <amount>"
+    means "sold to <team>" only with one, and "sold" with none is answered first.
     `team`: a team the user picked from team_candidates; it replaces the team text of
-    the parsed command, so nothing else about the command changes.
+    the parsed command, so nothing else about the command changes. It must be an exact
+    current team: a stale button after a rename is refused, never fuzzy-matched.
     """
     cmd = parse_command(raw)
     kind = cmd["kind"]
     if team and kind in ("turn", "pick", "sold", "short_sold"):
+        if team not in teams:
+            return {"kind": "error", "message": f'Team "{team}" no longer exists. Give the command again.'}
         cmd = {**cmd, "team": team}
+    if kind == "sold" and block is False:
+        return {"kind": "error", "message": "Nobody is on the block."}
 
     if kind == "short_sold":
         team, _ = match_team(cmd["team"], teams, me, aliases)
@@ -549,7 +555,13 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False, team=None
     if not team and kind == "sold":
         team = _team_glued_to(cmd["team"], teams, me, aliases)
     if not team:
-        return _team_error(cmd["team"], why, teams, aliases, candidates=True, action=kind)
+        err = _team_error(cmd["team"], why, teams, aliases, candidates=True, action=kind)
+        if kind == "pick":
+            # pin the heard player: a later click must not pick whoever the name matches then
+            heard = _resolve_player(cmd["name"], pool)
+            if heard["kind"] == "found":
+                err["player_id"] = heard["player"]["id"]
+        return err
 
     amount = cmd["amount"]
     if amount is not None and not (0 < amount <= budget):

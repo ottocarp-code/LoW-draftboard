@@ -704,16 +704,37 @@ def test_team_button_sells_when_the_block_is_unchanged(client):
     assert r.status_code == 200 and (p["name"], p["team"], p["price"]) == ("Anthony Edwards", "Gillese", 5)
 
 
-@pytest.mark.parametrize("first", [None, "nominate jayson tatum"])
-def test_stale_team_button_never_sells_another_player(client, first):
-    # review: heard with nobody (or Tatum) on the block, clicked after Edwards was nominated
-    if first:
-        cmd(client, first)
+def test_stale_sold_button_never_sells_another_player(client):
+    # review: heard with Tatum on the block, clicked after Edwards was nominated
+    cmd(client, "nominate jayson tatum")
     body = cmd(client, "sold to gin for 5").json()
-    if first:
-        cmd(client, "undo")                       # clears the block only
+    cmd(client, "undo")                           # clears the block only
     cmd(client, "nominate anthony edwards")
     r = _click(client, body, "Gillese")
     assert r.status_code == 409 and "changed" in r.json()["message"]
     s = state(client)
     assert s["picks"] == [] and s["block"]["player"]["name"] == "Anthony Edwards"
+
+
+def test_sold_to_an_unknown_team_with_an_empty_block_offers_no_buttons(client):
+    body = cmd(client, "sold to gin for 5").json()
+    assert body["message"] == "Nobody is on the block." and "team_candidates" not in body
+
+
+def test_stale_pick_button_never_picks_another_player(client):
+    # review: the heard player was drafted elsewhere before the click
+    body = cmd(client, "anthony edwards to an auto for 5").json()
+    assert body["action"] == "pick" and body["player_id"]
+    cmd(client, "anthony edwards to rj for 3")
+    r = client.post("/api/command", json={"text": body["command"], "team": "Notto",
+                                          "expect_player": body["player_id"], "source": "click"})
+    assert r.status_code == 409 and "no longer available" in r.json()["message"]
+    assert [p["team"] for p in state(client)["picks"]] == ["RJ"]
+
+
+def test_team_button_for_a_renamed_team_is_refused(client):
+    body = cmd(client, "anthony edwards to an auto for 5").json()
+    r = client.post("/api/command", json={"text": body["command"], "team": "Nottoo",
+                                          "expect_player": body["player_id"], "source": "click"})
+    assert r.status_code == 400 and "no longer exists" in r.json()["message"]
+    assert state(client)["picks"] == []

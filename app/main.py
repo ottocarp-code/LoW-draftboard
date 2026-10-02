@@ -136,8 +136,12 @@ def create_app(db_path=None, values_path=None, headshots=None):
         # sold is refused when the block has changed since (stale button, any screen).
         expect = payload.get("expect_block")
         expect = None if expect is None else str(expect)[:40]
+        # `expect_player`: the heard player of a failed pick; a click that would now pick
+        # someone else (the heard player was taken meanwhile) is refused.
+        expect_player = payload.get("expect_player")
+        expect_player = None if expect_player is None else str(expect_player)[:40]
         if source != "voice":
-            return run_command(text, source, team, expect)
+            return run_command(text, source, team, expect, expect_player)
         with store.lock:
             if store.voice_state()["muted"]:
                 # The listener honours mute itself; this guards a stale listener.
@@ -148,7 +152,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 # voice undo goes through, and run_command then only clears the block.
                 res = fail("Undo picks by typing.", 400)
             else:
-                res = run_command(text, source, team, expect)
+                res = run_command(text, source, team, expect, expect_player)
             body, status = res, 200
             if isinstance(res, JSONResponse):
                 body, status = json.loads(res.body), res.status_code
@@ -163,12 +167,15 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 out["state"] = store.state()          # includes the new voice event
             return JSONResponse(out, status_code=status)
 
-    def run_command(text, source, team=None, expect_block=None):
+    def run_command(text, source, team=None, expect_block=None, expect_player=None):
         with store.lock:
             res = cmdparser.interpret(text, store.available(), store.teams, store.me,
                                       store.pool.league()["budget"], store.aliases,
                                       block=bool(store.block), team=team)
             kind = res["kind"]
+            if (expect_player is not None and kind in ("pick", "need_amount", "ambiguous")
+                    and (res.get("player") or {}).get("id") != expect_player):
+                return fail("The player heard is no longer available: give the pick again.", 409)
 
             if kind == "pick":
                 return do_pick(res["player"]["id"], res["team"], res["amount"], source)
@@ -249,6 +256,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
                         # buttons send it back as expect_block (see the sold branch)
                         block_player = store.block_player()
                         extra["block_player_id"] = block_player["id"] if block_player else ""
+                    if res.get("player_id"):
+                        extra["player_id"] = res["player_id"]     # a pick's heard player
                 if res.get("action"):
                     extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)

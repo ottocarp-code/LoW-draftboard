@@ -571,7 +571,7 @@ class Store:
 
 VOICE_EVENT_FIELDS = ("kind", "ok", "message", "player", "team", "price", "amount",
                       "query", "candidates", "team_candidates", "command", "block_player_id",
-                      "count", "picks", "removed", "action", "nominator", "sold")
+                      "player_id", "count", "picks", "removed", "action", "nominator", "sold")
 # The player fields the block panel shows (headshot id, name, value, position).
 BLOCK_PLAYER_FIELDS = ("id", "name", "team", "pos", "inj", "value", "market_value",
                        "espn_rank")

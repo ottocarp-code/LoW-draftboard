@@ -150,7 +150,7 @@ function applyState(s){
 
 /* ---------------------------------------------------------------- messages and prompts */
 function say(msg, cls){ const s = $("#status"); s.textContent = msg || ""; s.className = cls || ""; }
-function clearPrompt(){ $("#prompt").replaceChildren(); }
+function clearPrompt(){ const b = $("#prompt"); b.replaceChildren(); delete b.dataset.action; }
 
 /* fromPrompt: a rejected pick keeps the prompt open so the entry can be corrected. */
 function handle(res, fromPrompt = false){
@@ -195,6 +195,7 @@ function teamPrompt(cands){
 /* action "nominate": a click puts that player on the block instead of picking him. */
 function candidatePrompt(cands, team, amount, label, action){
   const box = $("#prompt");
+  if(action === "nominate") box.dataset.action = "nominate";
   box.append(h("span", {class: "muted", text: label || (action === "nominate" ? "Nominate:" : "Pick one:")}));
   for(const c of cands){
     box.append(h("button", {type: "button", class: "cand", onclick: async () => {
@@ -484,8 +485,21 @@ function renderPlayers(){
   else reconcile($("#list tbody"), list, rowEls, p => String(p.id), makeRow, markGone);
 }
 
-function onPlayerClick(p){
+/* A nominate under way (typed in the bar, or its candidate row open): a click on the
+   board nominates that player instead of opening the pick prompt. */
+function nominating(){
+  return $("#prompt").dataset.action === "nominate" ||
+    NOMINATE.test(norm($("#cmd").value).replace(WAKE,"").trim());
+}
+
+async function onPlayerClick(p){
   if(fading.has(String(p.id))) return;
+  if(nominating()){
+    const res = await api("/api/nominate", {player_id: p.id, source: "click"});
+    if(res.ok){ $("#cmd").value = ""; renderPlayers(); }
+    handle(res);
+    return;
+  }
   say(`${p.name}: choose the team and amount.`, "ask");
   amountPrompt(p, null);
 }

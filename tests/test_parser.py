@@ -310,3 +310,60 @@ def test_nickname_rule_leaves_real_first_names_alone(pool, query, name):
 def test_failed_nominate_error_carries_the_action(pool):
     r = run("nominate zzqx", pool)
     assert r["kind"] == "error" and r["action"] == "nominate"
+
+
+# ---------------------------------------------------------------- lenient keywords and shortcuts
+
+@pytest.mark.parametrize("text,name", [
+    ("nm anthony edwards", "anthony edwards"),
+    ("ok banana nominates cuddy barnes", "cuddy barnes"),           # real transcripts
+    ("nomineen muhammad diawara", "muhammad diawara"),
+    ("nomina tejae lanjoan sun", "tejae lanjoan sun"),
+    ("nominee jokic", "jokic"),
+])
+def test_nominate_shortcut_and_whisper_forms(text, name):
+    assert P.parse_command(text) == {"kind": "nominate", "name": name}
+
+
+@pytest.mark.parametrize("text,team,amount", [
+    ("ok banana soul to hotto for 20", "hotto", 20),                  # real transcripts
+    ("Sol to Hotto for two dollars", "hotto", 2),
+    ("sole to rj for 5", "rj", 5),
+    ("sold the miele for 5", "miele", 5),
+    ("sold two rj for 5", "rj", 5),
+    ("sold too lode for $12", "lode", 12),
+])
+def test_sold_keyword_forms(text, team, amount):
+    cmd = P.parse_command(text)
+    assert cmd["kind"] == "sold" and cmd["team"] == team and cmd["amount"] == amount
+
+
+def test_sold_today_is_sold_to_dave():
+    r = P.interpret("sold today for $3", [], TEAMS, "Notto", 200)   # real: "Lode be sold today for $3"
+    assert r == {"kind": "sold", "team": "Dave", "amount": 3}
+    # a glued "to" that gives no single team stays an error
+    assert P.interpret("sold tomorrow for 3", [], TEAMS, "Notto", 200)["kind"] == "error"
+
+
+@pytest.mark.parametrize("text,team,amount", [
+    ("notto for 5", "Notto", 5),
+    ("miele 12", "Miele", 12),
+    ("emiel for five dollars", "Miele", 5),
+    ("rj at 3", "RJ", 3),
+])
+def test_short_sold_needs_a_block(pool, text, team, amount):
+    r = P.interpret(text, pool, TEAMS, "Notto", 200, ALIASES, block=True)
+    assert r == {"kind": "sold", "team": team, "amount": amount}
+    without = P.interpret(text, pool, TEAMS, "Notto", 200, ALIASES)
+    assert without["kind"] == "error" and "Nobody is on the block" in without["message"]
+
+
+@pytest.mark.parametrize("text", ["curry 5", "bridges for 5", "jokic"])
+def test_short_sold_leaves_other_text_alone(pool, text):
+    # not a team: the same as before the shortcut (a board search without a block)
+    assert P.interpret(text, pool, TEAMS, "Notto", 200, ALIASES)["kind"] == "search"
+
+
+def test_short_sold_with_block_but_no_team_is_a_team_error(pool):
+    r = P.interpret("bridges for 5", pool, TEAMS, "Notto", 200, ALIASES, block=True)
+    assert r["kind"] == "error" and "bridges" in r["message"].lower()

@@ -375,16 +375,19 @@ def parse_command(raw):
         return {"kind": "back"}
 
     # nominate <player>: never a turn command (turns are turn/clock/beurt, skip, go back).
-    m = re.match(r"^nominate(?:s|d)?(?:\s+(.+))?$", t)
+    # "nm" is the typed shortcut; any "nomin..." word covers Whisper's nominee,
+    # nomineen, nominates and nomina. No player or team has such a word in its name.
+    m = re.match(r"^(?:nomin\w*|nm)(?:\s+(.+))?$", t)
     if m:
         if not m.group(1):
             return {"kind": "error", "message": "Nominate which player?"}
         return {"kind": "nominate", "name": m.group(1)}
 
     # sold [to] <team> [for] <amount>   /   sold [to] <team>
-    m = re.match(r"^sold(?:\s+(.+))?$", t)
+    # Whisper often hears "sold" as soul/sol/sole and "to" as the/two/too.
+    m = re.match(r"^(?:sold|soul|sol|sole|solde)(?:\s+(.+))?$", t)
     if m:
-        rest = re.sub(r"^(?:to|2)(?:\s+|$)", "", m.group(1) or "")
+        rest = re.sub(r"^(?:to|2|the|two|too)(?:\s+|$)", "", m.group(1) or "")
         if not rest:
             return {"kind": "error", "message": "Sold to which team?"}
         m2 = re.match(r"^(.+?)\s+(?:for|at)\s+(.+)$", rest)
@@ -420,7 +423,36 @@ def parse_command(raw):
         return {"kind": "pick", "name": m.group(1), "team": team, "amount": amount,
                 "amount_text": None}
 
+    # <team> for <amount>   /   <team> <amount>: short "sold", only with a player on
+    # the block and a clearly matched team (interpret decides; otherwise a search).
+    m = re.match(r"^(.+?)\s+(?:for|at)\s+(.+)$", t)
+    if m:
+        cmd = _pick(None, m.group(1), m.group(2))
+        if cmd["kind"] == "pick":
+            return {"kind": "short_sold", "team": cmd["team"], "amount": cmd["amount"],
+                    "amount_text": cmd["amount_text"], "text": t, "with_for": True}
+    team, amount = _split_trailing_amount(t)
+    if team and amount is not None:
+        return {"kind": "short_sold", "team": team, "amount": amount, "amount_text": None,
+                "text": t, "with_for": False}
+
     return {"kind": "search", "text": t}
+
+
+def _team_glued_to(q, teams, me, aliases):
+    """
+    "sold today" is "sold to Da(ve)": a "to" glued to the team. Retry without it, and
+    then with the first two letters only; accepted only when that is one clear team.
+    """
+    n = normalize(q)
+    if not n.startswith("to") or len(n) < 4:
+        return None
+    rest = n[2:].strip()
+    team, _ = match_team(rest, teams, me, aliases)
+    if team:
+        return team
+    starts = [t for t in teams if normalize(t).startswith(rest[:2])]
+    return starts[0] if len(starts) == 1 else None
 
 
 def _pick(name, team, amount_text):
@@ -432,13 +464,28 @@ def _pick(name, team, amount_text):
             "amount_text": amount_text}
 
 
-def interpret(raw, pool, teams, me, budget, aliases=None):
+def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
     """
     Interprets a command against the available pool (list of (player, Name)).
     Always returns a dict with `kind`; on doubt `ambiguous` with candidates, never a guess.
+    `block`: a player is on the block, so "<team> for <amount>" means "sold to <team>".
     """
     cmd = parse_command(raw)
     kind = cmd["kind"]
+
+    if kind == "short_sold":
+        team, _ = match_team(cmd["team"], teams, me, aliases)
+        if not team:
+            # Not a team: what it was before the shortcut existed (board search, or an
+            # error with candidates for "<x> for <amount>" while someone is on the block).
+            if block and cmd["with_for"]:
+                return _team_error(cmd["team"], "unknown", teams)
+            return {"kind": "search", "text": cmd["text"]}
+        if not block:
+            return {"kind": "error", "message": f"Nobody is on the block: nominate a player "
+                                                f"first, or type <player> to {team} for <amount>."}
+        cmd = {**cmd, "kind": "sold"}
+        kind = "sold"
 
     if kind == "undo":
         if cmd["count"] < 1:
@@ -465,6 +512,8 @@ def interpret(raw, pool, teams, me, budget, aliases=None):
         return cmd
 
     team, why = match_team(cmd["team"], teams, me, aliases)
+    if not team and kind == "sold":
+        team = _team_glued_to(cmd["team"], teams, me, aliases)
     if not team:
         return _team_error(cmd["team"], why, teams)
 

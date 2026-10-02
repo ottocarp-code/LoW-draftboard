@@ -615,3 +615,26 @@ def test_rename_follows_the_block_nominator(client):
 def test_block_is_in_the_export(client):
     cmd(client, "nominate anthony edwards")
     assert client.get("/api/export").json()["block"]["player"]["name"] == "Anthony Edwards"
+
+
+def test_short_sold_after_a_nomination(client):
+    cmd(client, "turn lode")
+    cmd(client, "nm anthony edwards")
+    assert block(client)["player"]["name"] == "Anthony Edwards"
+    r = cmd(client, "rj for 5")
+    assert r.status_code == 200, r.json()
+    p = r.json()["state"]["picks"][-1]
+    assert (p["name"], p["team"], p["price"]) == ("Anthony Edwards", "RJ", 5)
+    assert block(client) is None
+
+
+def test_short_sold_without_a_block_is_refused(client):
+    r = cmd(client, "rj for 5")
+    assert r.status_code == 400 and "Nobody is on the block" in r.json()["message"]
+    assert state(client)["picks"] == []
+
+
+def test_voice_soul_to_is_sold(client):
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, "ok banana soul to rj for 5", source="voice").json()
+    assert r["ok"] and r["kind"] == "pick" and r["sold"]

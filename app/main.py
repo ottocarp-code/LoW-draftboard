@@ -160,7 +160,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
     def run_command(text, source):
         with store.lock:
             res = cmdparser.interpret(text, store.available(), store.teams, store.me,
-                                      store.pool.league()["budget"], store.aliases)
+                                      store.pool.league()["budget"], store.aliases,
+                                      block=bool(store.block))
             kind = res["kind"]
 
             if kind == "pick":

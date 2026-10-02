@@ -81,12 +81,20 @@ function score(q, k){
   return s;
 }
 /* The part before to/mine/for is the name, so the board filters mid-command.
-   "nominate <player>" filters on the player; "sold to <team>" names no player. */
+   "nominate <player>" (or "nm") filters on the player; "sold to <team>" and the short
+   "<team> for <amount>" name no player. Keywords as in app/parser.py parse_command. */
+const NOMINATE = /^(?:nomin\w*|nm)\b\s*/;
+function isTeamText(s){
+  if(!STATE || !s) return false;
+  const al = STATE.aliases || {};
+  return STATE.teams.some(t => norm(t.name) === s || (al[t.name] || []).some(a => norm(a) === s));
+}
 function nameFragment(raw){
   let t = norm(String(raw||"").replace(/\$/g," ")).replace(WAKE,"").trim();
-  if(/^(undo|skip|turn|clock|beurt|sold|pass|next|go back|back|previous|prev)\b/.test(t)) return "";
-  t = t.replace(/^nominate[sd]?\b\s*/, "");
-  return t.split(/\s+(?:to|mine|for|at)(?:\s+|$)/)[0].trim();
+  if(/^(undo|skip|turn|clock|beurt|sold|soul|sol|sole|solde|pass|next|go back|back|previous|prev)\b/.test(t)) return "";
+  t = t.replace(NOMINATE, "");
+  const name = t.split(/\s+(?:to|mine|for|at)(?:\s+|$)/)[0].trim();
+  return isTeamText(name) || isTeamText(name.replace(/\s+\d+$/, "")) ? "" : name;
 }
 
 /* ---------------------------------------------------------------- server */

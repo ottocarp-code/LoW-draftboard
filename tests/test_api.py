@@ -27,7 +27,7 @@ def test_state_has_twelve_teams_and_league_from_config(client):
     assert len(s["teams"]) == 12 and s["me"] == "Notto"
     assert s["league"] == {"teams": 12, "budget": 200, "roster_spots": 13}
     assert s["on_the_clock"] == "RoRo" and s["error"] is None
-    assert s["available_count"] == 200
+    assert s["available_count"] == 201          # 200 fixture players + the easter egg
 
 
 def test_players_have_derived_espn_rank(client):
@@ -638,6 +638,26 @@ def test_voice_soul_to_is_sold(client):
     cmd(client, "nominate anthony edwards")
     r = cmd(client, "ok banana soul to rj for 5", source="voice").json()
     assert r["ok"] and r["kind"] == "pick" and r["sold"]
+
+
+def test_easter_egg_otto_is_draftable_for_one_dollar(client, tmp_path):
+    ps = client.get("/api/players").json()["players"]
+    otto = next(p for p in ps if p["name"] == "Otto Carpentier")
+    assert otto["value"] == 1
+    # no ADP: ranked after every player that has one
+    assert all(otto["espn_rank"] > p["espn_rank"] for p in ps if p.get("adp"))
+    r = cmd(client, "otto carpentier to rj for 1").json()
+    assert r["ok"] and r["state"]["picks"][-1]["name"] == "Otto Carpentier"
+
+
+def test_headshot_route_serves_a_jpg_too(make_client, tmp_path):
+    heads = tmp_path / "headshots"                     # the folder make_client serves
+    heads.mkdir(exist_ok=True)
+    (heads / "otto-carpentier.jpg").write_bytes(b"\xff\xd8\xff\xe0fake")
+    c = make_client()
+    r = c.get("/headshots/otto-carpentier.png")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/jpeg"
+    assert c.get("/headshots/nobody.png").status_code == 404
 
 
 def test_team_candidate_command_completes_the_pick(client):

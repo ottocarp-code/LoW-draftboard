@@ -362,11 +362,13 @@ def create_app(db_path=None, values_path=None, headshots=None):
         pid = name[:-4] if name.endswith(".png") else None
         if not pid or not _ID.match(pid):
             return Response(status_code=404)
-        path = os.path.join(heads, f"{pid}.png")
-        if not os.path.isfile(path):
-            return Response(status_code=404)
-        return FileResponse(path, media_type="image/png",
-                            headers={"Cache-Control": "public, max-age=86400"})
+        # ESPN headshots are .png; a hand-placed photo (the easter egg) may be a .jpg.
+        for ext, media in (("png", "image/png"), ("jpg", "image/jpeg")):
+            path = os.path.join(heads, f"{pid}.{ext}")
+            if os.path.isfile(path):
+                return FileResponse(path, media_type=media,
+                                    headers={"Cache-Control": "public, max-age=86400"})
+        return Response(status_code=404)
 
     @app.get("/")
     @app.get("/board")

@@ -54,6 +54,17 @@ CREATE TABLE IF NOT EXISTS settings(k TEXT PRIMARY KEY, v TEXT NOT NULL);
 
 # ---------------------------------------------------------------- player pool
 
+# Easter egg: the commissioner's own draft card, worth $1. Added when the pool loads
+# (not in values.json), so a pipeline run never drops him. His photo is optional:
+# data/headshots/otto-carpentier.jpg (not in git); without it the card shows "OC".
+_ZERO = dict.fromkeys(("PTS", "TPM", "REB", "AST", "STL", "BLK", "FG", "FT", "TO"), 0.0)
+EASTER_EGG = {
+    "id": "otto-carpentier", "name": "Otto Carpentier", "team": "BOS", "pos": "PF",
+    "inj": "ACTIVE", "value": 1.0, "market_value": 1.0, "adp": 0, "z_total": 0.0,
+    "z": _ZERO, "pg": {"GP": 82.0, "MPG": 48.0, **_ZERO}, "fg_pct": 1.0, "ft_pct": 1.0,
+    "risk": 0.0, "risk_basis": "easter egg", "sources": ["easter egg"],
+}
+
 
 class Pool:
     """values.json, reloaded when the file changes so a pipeline run needs no restart."""
@@ -105,6 +116,8 @@ class Pool:
             p["id"] = str(p["id"])
             p["adp"] = p.get("adp") or 0
             players.append(p)
+        if players and not any(p["id"] == EASTER_EGG["id"] for p in players):
+            players.append({**EASTER_EGG, "z": dict(_ZERO), "pg": dict(EASTER_EGG["pg"])})
         # ESPN rank (F-16, F-18): values.json has no ESPN rank field, so it is
         # derived from ADP ascending, no ADP (0) last, ties broken by -z_total.
         by_espn = sorted(players, key=lambda p: (p["adp"] <= 0, p["adp"],

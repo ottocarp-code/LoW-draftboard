@@ -175,7 +175,21 @@ function handle(res, fromPrompt = false){
     default:
       say(res.message || "Something went wrong.", "err");
       if(res.candidates && res.candidates.length) candidatePrompt(res.candidates, null, null, "Closest:", res.action);
+      else if(res.team_candidates && res.team_candidates.length) teamPrompt(res.team_candidates);
   }
+}
+
+/* Team not recognised: the closest teams as buttons. Each one runs the same command
+   with that team filled in (built by the server), so player and amount stay as typed. */
+function teamButtons(cands, run){
+  return cands.map(c => h("button", {type: "button", class: "cand", onclick: () => run(c)},
+    c.team, " ", h("small", {text: `${Math.round(c.score*100)}%`})));
+}
+function teamPrompt(cands){
+  const box = $("#prompt");
+  box.append(h("span", {class: "muted", text: "Team:"}),
+    ...teamButtons(cands, async c => { handle(await api("/api/command", {text: c.command, source: "click"})); renderPlayers(); }),
+    h("button", {type: "button", text: "Cancel", onclick: () => { clearPrompt(); say(""); }}));
 }
 
 /* action "nominate": a click puts that player on the block instead of picking him. */
@@ -310,11 +324,24 @@ function renderVoiceBar(ev){
   const key = `${ev.id}|${ev.resolved || ""}`;
   if(key === voiceShown) return;             // unchanged: keep buttons and focus as they are
   voiceShown = key;
-  const pending = !ev.resolved && ["ambiguous", "need_amount"].includes(ev.kind);
+  const teamPick = !ev.resolved && !ev.ok && (ev.team_candidates || []).length > 0;
+  const pending = teamPick || (!ev.resolved && ["ambiguous", "need_amount"].includes(ev.kind));
   const cls = ev.resolved || ev.ok ? "ok" : pending ? "ask" : "err";
   const kids = [h("span", {class: "vtag", text: "Voice"}),
                 h("q", {class: "heard", text: ev.heard || ""}),
                 h("span", {class: `vres ${cls}`, text: ev.resolved ? `Done: ${ev.resolved}` : (ev.message || "")})];
+  if(teamPick){
+    // A click runs the heard command with that team; a follow-up prompt (which player,
+    // how much) continues in the command bar, and the banner is settled on every screen.
+    kids.push(...teamButtons(ev.team_candidates, async c => {
+      voiceLock(true);
+      const res = await api("/api/command", {text: c.command, source: "voice-click"});
+      handle(res);
+      if(res.ok) await voiceResolve(ev, res.message);
+      else if(["ambiguous", "need_amount"].includes(res.kind)) await voiceResolve(ev, `${c.team}: continue in the command bar.`);
+      else voiceLock(false);
+    }));
+  }
   if(pending && ev.kind === "ambiguous"){
     for(const c of ev.candidates || []) kids.push(h("button", {type: "button", class: "cand",
       onclick: async () => {

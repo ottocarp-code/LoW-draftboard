@@ -326,13 +326,33 @@ def _team_score(q, nt):
     return s
 
 
+def _drop_article(q):
+    """ "an auto" -> "auto": Whisper puts an article in front of a team it mishears."""
+    rest = re.sub(r"^(?:a|an|the)\s+", "", q)
+    return rest or q
+
+
+def _team_names(t, aliases):
+    return [n for n in [normalize(t)] + [normalize(a) for a in (aliases or {}).get(t) or []] if n]
+
+
+def team_candidates(query, teams, aliases=None, n=3):
+    """The `n` closest teams to a query that matched none, best first: [(team, score)]."""
+    q = _drop_article(normalize(query))
+    if not q:
+        return []
+    scored = sorted(((max(_team_score(q, x) for x in _team_names(t, aliases)), t) for t in teams),
+                    key=lambda x: -x[0])
+    return [(t, round(s, 3)) for s, t in scored[:n] if s > 0]
+
+
 def match_team(query, teams, me=None, aliases=None):
     """
     Returns (team or None, reason). `aliases` is {team: [nickname]} from the
     settings: a nickname matches with the same rules as the team name itself
     (exact, dice, prefix, anagram, soundex), for typed and voice input alike.
     """
-    q = normalize(query)
+    q = _drop_article(normalize(query))
     if not q:
         return None, "empty"
     if q in SELF_WORDS:
@@ -340,7 +360,7 @@ def match_team(query, teams, me=None, aliases=None):
     aliases = aliases or {}
     scored = []
     for t in teams:
-        names = [n for n in [normalize(t)] + [normalize(a) for a in aliases.get(t) or []] if n]
+        names = _team_names(t, aliases)
         if q in names:
             return t, "exact" if q == names[0] else "alias"
         scored.append((max(_team_score(q, n) for n in names), t))
@@ -479,7 +499,7 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
             # Not a team: what it was before the shortcut existed (board search, or an
             # error with candidates for "<x> for <amount>" while someone is on the block).
             if block and cmd["with_for"]:
-                return _team_error(cmd["team"], "unknown", teams)
+                return _team_error(cmd["team"], "unknown", teams, aliases, _retry_sold(cmd))
             return {"kind": "search", "text": cmd["text"]}
         if not block:
             return {"kind": "error", "message": f"Nobody is on the block: nominate a player "
@@ -495,7 +515,7 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
     if kind == "turn":
         team, why = match_team(cmd["team"], teams, me, aliases)
         if not team:
-            return _team_error(cmd["team"], why, teams)
+            return _team_error(cmd["team"], why, teams, aliases, lambda t: f"turn {t}")
         return {"kind": "turn", "team": team}
 
     if kind == "nominate":
@@ -515,7 +535,8 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
     if not team and kind == "sold":
         team = _team_glued_to(cmd["team"], teams, me, aliases)
     if not team:
-        return _team_error(cmd["team"], why, teams)
+        retry = _retry_sold(cmd) if kind == "sold" else _retry_pick(cmd)
+        return _team_error(cmd["team"], why, teams, aliases, retry)
 
     amount = cmd["amount"]
     if amount is not None and not (0 < amount <= budget):
@@ -558,7 +579,27 @@ def _resolve_player(name, pool):
     return {"kind": "found", "player": top_p, "score": round(top_s, 3)}
 
 
-def _team_error(q, why, teams):
+def _team_error(q, why, teams, aliases=None, retry=None):
+    """
+    `retry(team)` rebuilds the command with that team, so the client can offer the
+    closest teams as buttons (team_candidates) that simply run the fixed command.
+    """
     msg = (f'Team "{q}" is ambiguous.' if why == "ambiguous"
            else f'Team "{q}" not recognised.')
-    return {"kind": "error", "message": msg, "teams": list(teams)}
+    out = {"kind": "error", "message": msg, "teams": list(teams)}
+    if retry:
+        out["team_candidates"] = [{"team": t, "score": s, "command": retry(t)}
+                                  for t, s in team_candidates(q, teams, aliases)]
+    return out
+
+
+def _for_amount(cmd):
+    return f' for {cmd["amount"]}' if cmd.get("amount") is not None else ""
+
+
+def _retry_sold(cmd):
+    return lambda t: f"sold to {t}{_for_amount(cmd)}"
+
+
+def _retry_pick(cmd):
+    return lambda t: f'{cmd["name"]} to {t}{_for_amount(cmd)}'

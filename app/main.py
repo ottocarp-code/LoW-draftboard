@@ -232,6 +232,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
                                            for c in res["candidates"]]
                 if res.get("teams"):
                     extra["teams"] = res["teams"]
+                if res.get("team_candidates"):
+                    extra["team_candidates"] = res["team_candidates"]
                 if res.get("action"):
                     extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)

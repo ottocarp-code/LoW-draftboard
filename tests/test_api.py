@@ -638,3 +638,19 @@ def test_voice_soul_to_is_sold(client):
     cmd(client, "nominate anthony edwards")
     r = cmd(client, "ok banana soul to rj for 5", source="voice").json()
     assert r["ok"] and r["kind"] == "pick" and r["sold"]
+
+
+def test_team_candidate_command_completes_the_pick(client):
+    r = cmd(client, "anthony edwards to an auto for 5")
+    body = r.json()
+    assert r.status_code == 400 and body["team_candidates"][0]["team"] == "Notto"
+    r2 = cmd(client, body["team_candidates"][0]["command"], source="click").json()
+    assert r2["ok"] and r2["state"]["picks"][-1]["team"] == "Notto"
+
+
+def test_voice_event_carries_team_candidates(client):
+    cmd(client, "nominate anthony edwards")
+    r = cmd(client, "ok banana sold to gin for 5", source="voice").json()
+    ev = r["voice_event"]
+    assert not ev["ok"] and ev["team_candidates"][0]["team"] == "Gillese"
+    assert ev["team_candidates"][0]["command"] == "sold to Gillese for 5"

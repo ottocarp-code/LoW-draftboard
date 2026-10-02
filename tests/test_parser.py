@@ -367,3 +367,26 @@ def test_short_sold_leaves_other_text_alone(pool, text):
 def test_short_sold_with_block_but_no_team_is_a_team_error(pool):
     r = P.interpret("bridges for 5", pool, TEAMS, "Notto", 200, ALIASES, block=True)
     assert r["kind"] == "error" and "bridges" in r["message"].lower()
+
+
+# ---------------------------------------------------------------- team candidates
+
+def test_article_before_a_team_is_dropped():
+    assert P.match_team("the miele", TEAMS) == ("Miele", "exact")
+    assert P.match_team("a dave", TEAMS) == ("Dave", "exact")
+
+
+@pytest.mark.parametrize("text,top,command", [
+    ("mitchell robinson to an auto for 5", "Notto", "mitchell robinson to Notto for 5"),
+    ("sold to gin for 33", "Gillese", "sold to Gillese for 33"),
+    ("sold to gin", "Gillese", "sold to Gillese"),
+    ("turn the pin", None, None),
+])
+def test_unknown_team_offers_the_closest_teams_as_commands(text, top, command):
+    r = P.interpret(text, [], TEAMS, "Notto", 200)
+    assert r["kind"] == "error" and "not recognised" in r["message"]
+    cands = r["team_candidates"]
+    assert 1 <= len(cands) <= 3 and all(c["command"] for c in cands)
+    assert [c["score"] for c in cands] == sorted((c["score"] for c in cands), reverse=True)
+    if top:
+        assert cands[0]["team"] == top and cands[0]["command"] == command

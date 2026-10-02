@@ -6,7 +6,7 @@ and save those spellings as team nicknames.
     py voice/calibrate.py --teams Miele,Ceun     only these teams
     py voice/calibrate.py --models base.en       one model
 
-For each team you say a whole command twice, "low-db curry to <team> for ten",
+For each team you say a whole command twice, "ok banana curry to <team> for ten",
 because that is how the name sounds on draft night. The script prints what each
 model heard (and how long it took), whether the wake word was recognised, and
 which team the parser would pick. Spellings that are not already the team name
@@ -40,7 +40,7 @@ def record(seconds, device):
 
 
 def heard_team(text):
-    """The team part of a transcribed "low-db curry to <team> for ten", or None."""
+    """The team part of a transcribed "ok banana curry to <team> for ten", or None."""
     cmd = find_wake(text)
     body = cmd if cmd is not None else text
     parsed = cmdparser.parse_command(body)
@@ -92,7 +92,7 @@ def main(argv=None):
     for team in wanted:
         for take in range(1, TAKES + 1):
             ask(f'[{team}, take {take}/{TAKES}] Press Enter, then say: '
-                f'"low-db curry to {team} for ten" ')
+                f'"ok banana curry to {team} for ten" ')
             audio = record(args.seconds, device)
             for name, model in models.items():
                 t0 = time.perf_counter()

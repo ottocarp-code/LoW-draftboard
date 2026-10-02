@@ -4,7 +4,7 @@ Whisper hotword string. No audio or model imports here, so the tests can use it.
 
 The wake word is recognised on the transcript itself (no separate wake-word
 model), with the same pattern the server parser strips (app/parser.py WAKE_CORE),
-so the listener and the parser never disagree on what counts as "low-db".
+so the listener and the parser never disagree on what counts as "ok banana".
 """
 
 import os
@@ -17,31 +17,31 @@ if APP not in sys.path:
 
 from parser import WAKE_CORE, WAKE_FILLER, normalize  # noqa: E402
 
-WAKE_WORD = "low-db"
+WAKE_WORD = "ok banana"
 _WAKE_ONLY = re.compile(rf"^(?:{WAKE_FILLER}\s+)*{WAKE_CORE}$")
 _FILLER_ONLY = re.compile(rf"^{WAKE_FILLER}$")
 _LEAD_PUNCT = re.compile(r"^[\s,.:;!?\-–—\"']+")
 _TRAIL_PUNCT = re.compile(r"[\s,.:;!?\"']+$")
-MAX_WAKE_TOKENS = 5          # "hey low dee bee" is 4 raw tokens at most, plus slack
+MAX_WAKE_TOKENS = 3          # "draft bot" is 2 raw tokens at most, plus slack
 
 
 def find_wake(text):
     """
     The command after the wake word, or None when the transcript does not start
-    with it. Loose on case, punctuation and spacing: "Low-DB, Steph Curry to
+    with it. Loose on case, punctuation and spacing: "Ok, banana. Steph Curry to
     Miele for $55." -> "Steph Curry to Miele for $55". The remainder is returned
     raw (not normalized), so the server still sees "$" and decimal points.
     An utterance that is only the wake word returns "" (not None).
     """
     toks = str(text or "").split()
-    # Leading fillers Whisper likes to add ("Uh, low-db ...", "Okay. Low DB ...").
+    # Leading fillers, including the "ok" of "ok banana" ("Okay. Banana ...", "Uh, ok banana ...").
     start = 0
     while start < len(toks) and _FILLER_ONLY.match(normalize(toks[start]) or "-"):
         start += 1
     for k in range(1, min(MAX_WAKE_TOKENS, len(toks) - start) + 1):
         head = normalize(" ".join(toks[start:start + k]))
         if head and _WAKE_ONLY.match(head):
-            # Prefer the longest wake phrase: "low dee bee" over "low dee" + "bee".
+            # Prefer the longest wake phrase: "draft bot" over "draft" + "bot".
             longer = [j for j in range(k + 1, min(MAX_WAKE_TOKENS, len(toks) - start) + 1)
                       if _WAKE_ONLY.match(normalize(" ".join(toks[start:start + j])))]
             k = longer[-1] if longer else k

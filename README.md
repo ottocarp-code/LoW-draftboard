@@ -68,8 +68,8 @@ draft maken het blok ook leeg. Het blok staat in SQLite en overleeft een herstar
 `nominate` zet de beurt niet meer; dat doen `turn`, `clock`, `skip` en `go back`.
 
 Bedragen mogen cijfers of Engelse getalwoorden zijn. Een voorafgaand `draftbot`
-wordt genegeerd, net als het wake word `low-db` (ook `low db`, `lowdb`,
-`low d b`, `low dee bee`, `lo db`) voor de spraaklaag. `$`, `dollars` en `bucks` mogen voor of na
+wordt genegeerd, net als het wake word `ok banana` (ook `okay banana`, een los
+`banana`, `bananas`) voor de spraaklaag. `$`, `dollars` en `bucks` mogen voor of na
 het bedrag. Een bedrag boven de max bid wordt geweigerd. Typen filtert het bord
 live mee.
 
@@ -151,24 +151,24 @@ zien.
 
 Een aparte listener (`voice/`) luistert op de micro van de app-laptop, transcribeert
 lokaal met Whisper (faster-whisper, CPU, int8) en stuurt enkel zinnen die beginnen
-met het wake word **low-db** naar `POST /api/command` met `source: "voice"`. Het is
+met het wake word **ok banana** naar `POST /api/command` met `source: "voice"`. Het is
 dezelfde parser als de commandobalk. Een duidelijke pick gaat meteen in. Elk
 scherm toont dan een spraakbanner met wat er gehoord is en wat er gebeurde.
 
 ```
-low-db steph curry to miele for 55 dollars    pick, meteen opgeslagen
-low-db bridges to rj for 5                    kandidaten in de banner, één klik op eender welk scherm
-low-db sengun to lode                         knop in de banner opent de bedragprompt
-low-db nominate anthony edwards               speler op het blok, op elk scherm
-low-db sold to rj for five                    de speler op het blok wordt een pick
-low-db turn dave  /  low-db skip  /  low-db go back
+ok banana steph curry to miele for 55 dollars    pick, meteen opgeslagen
+ok banana bridges to rj for 5                    kandidaten in de banner, één klik op eender welk scherm
+ok banana sengun to lode                         knop in de banner opent de bedragprompt
+ok banana nominate anthony edwards               speler op het blok, op elk scherm
+ok banana sold to rj for five                    de speler op het blok wordt een pick
+ok banana turn dave  /  ok banana skip  /  ok banana go back
 ```
 
-Undo van picks gaat **nooit** met spraak: "low-db undo" haalt geen pick weg en de
+Undo van picks gaat **nooit** met spraak: "ok banana undo" haalt geen pick weg en de
 banner zegt "Undo picks by typing." Typ `undo` of klik. Staat er een speler op het
-blok, dan haalt "low-db undo" enkel die van het blok; picks blijven altijd staan. Een reset kan ook niet met
+blok, dan haalt "ok banana undo" enkel die van het blok; picks blijven altijd staan. Een reset kan ook niet met
 spraak. Zinnen zonder wake word worden niet verstuurd. Zeg het commando in
-dezelfde adem als "low-db": na een pauze komt de rest binnen als een aparte zin
+dezelfde adem als "ok banana": na een pauze komt de rest binnen als een aparte zin
 zonder wake word, en die wordt genegeerd.
 
 **Installeren** (los van de app, eigen dependencies):
@@ -181,7 +181,7 @@ py -m pip install -r voice\requirements.txt
 (base.en is 145 MB, small.en 484 MB). Daarna laadt hij het uit de lokale cache
 (`local_files_only`) en werkt hij zonder internet. Doe de eerste run dus thuis.
 
-**Kalibreren.** Met de app aan zeg je per team twee keer "low-db curry to <team>
+**Kalibreren.** Met de app aan zeg je per team twee keer "ok banana curry to <team>
 for ten". Het script toont per model wat Whisper hoorde, hoe lang dat duurde en
 of het wake word herkend werd. Nieuwe spellingen (bv. "amiel" voor Miele) kan je
 meteen als bijnaam opslaan. Die staan daarna in het instellingenpaneel en werken
@@ -214,8 +214,9 @@ vul je in het instellingenpaneel in, in het veld "also called…" naast de naam
 of bijnaam van een ander team zijn. Bijnamen gelden enkel voor teams, niet voor
 spelers (F-32).
 
-**Microtips.** Gebruik een headset of clip-on micro: in een zaal vol mensen haalt
-de ingebouwde laptopmicro vooral het geroezemoes op. Zeg "low-db" duidelijk en
+**Microtips.** Een headset of clip-on micro vangt minder geroezemoes dan de
+ingebouwde laptopmicro (welke micro het beste werkt, meten we met `voice/record.py`).
+Zeg "ok banana" duidelijk en
 zonder haast, en noem het bedrag als laatste ("for 55"). Luistert de listener te
 veel mee, verhoog dan `--threshold` (standaard 0.5). Knipt hij zinnen te vroeg af,
 verhoog dan `--silence-ms` (standaard 400). Werkt de listener niet of crasht hij,

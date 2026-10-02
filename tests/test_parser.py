@@ -55,8 +55,8 @@ def test_undo_count(text, count):
     assert P.parse_command(text) == {"kind": "undo", "count": count}
 
 
-@pytest.mark.parametrize("wake", ["draftbot", "draft bot", "low-db", "low db", "lowdb",
-                                  "low dee bee", "hey low-db", "Low-DB,"])
+@pytest.mark.parametrize("wake", ["draftbot", "draft bot", "ok banana", "okay banana", "banana",
+                                  "Ok, banana,", "hey ok banana", "OK Banana."])
 def test_wake_words_are_stripped(wake):
     cmd = P.parse_command(f"{wake} sengun to lode for 12")
     assert cmd["kind"] == "pick" and cmd["name"] == "sengun" and cmd["amount"] == 12
@@ -70,10 +70,10 @@ def test_pick(pool):
     assert r["team"] == "Miele" and r["amount"] == 13
 
 
-@pytest.mark.parametrize("text", ["low-db steph curry to Miele for 55 $",
-                                  "low db curry to miele for fifty five dollars",
-                                  "lowdb stephen curry to miele 55 dollars",
-                                  "low dee bee curry to miele for $55"])
+@pytest.mark.parametrize("text", ["ok banana steph curry to Miele for 55 $",
+                                  "okay banana curry to miele for fifty five dollars",
+                                  "banana stephen curry to miele 55 dollars",
+                                  "Ok, bananas, curry to miele for $55"])
 def test_voice_style(pool, text):
     r = run(text, pool)
     assert r["kind"] == "pick", r
@@ -186,7 +186,7 @@ def test_team_nicknames(q, team, why):
 
 
 def test_nicknames_work_in_commands(pool):
-    r = P.interpret("low-db curry to amiel for 10", pool, TEAMS, "Notto", 200, ALIASES)
+    r = P.interpret("ok banana curry to amiel for 10", pool, TEAMS, "Notto", 200, ALIASES)
     assert r["kind"] == "pick" and r["team"] == "Miele" and r["amount"] == 10
     r = P.interpret("turn sun", pool, TEAMS, "Notto", 200, ALIASES)
     assert r == {"kind": "turn", "team": "Ceun"}
@@ -200,13 +200,13 @@ def test_players_have_no_alias_table(pool):
     assert r["kind"] != "pick" or "amiel" not in P.normalize(r["player"]["name"])
 
 
-@pytest.mark.parametrize("wake", ["lo db", "low d bee", "lodb", "uh low-db", "okay lowdb"])
+@pytest.mark.parametrize("wake", ["ok bananna", "okay bananas", "banana's", "uh ok banana", "so banana"])
 def test_more_wake_variants_are_stripped(wake):
     cmd = P.parse_command(f"{wake} sengun to lode for 12")
     assert cmd["kind"] == "pick" and cmd["name"] == "sengun" and cmd["amount"] == 12
 
 
-@pytest.mark.parametrize("text", ["lowe to rj for 5", "lodge to lode for 5"])
+@pytest.mark.parametrize("text", ["bandana to rj for 5", "okafor to lode for 5", "low db to lode for 5"])
 def test_wake_does_not_eat_names(text):
     cmd = P.parse_command(text)
     assert cmd["kind"] == "pick" and cmd["name"] == text.split(" to ")[0]
@@ -216,11 +216,11 @@ def test_wake_does_not_eat_names(text):
 
 @pytest.mark.parametrize("text,expected", [
     ("nominate anthony edwards", {"kind": "nominate", "name": "anthony edwards"}),
-    ("low-db nominate curry", {"kind": "nominate", "name": "curry"}),
+    ("ok banana nominate curry", {"kind": "nominate", "name": "curry"}),
     ("sold to rj for 5", {"kind": "sold", "team": "rj", "amount": 5, "amount_text": "5"}),
     ("sold to rj 5 dollars", {"kind": "sold", "team": "rj", "amount": 5, "amount_text": None}),
     ("sold to rj", {"kind": "sold", "team": "rj", "amount": None, "amount_text": None}),
-    ("low db sold to miele for fifty five dollars",
+    ("okay banana sold to miele for fifty five dollars",
      {"kind": "sold", "team": "miele", "amount": 55, "amount_text": "fifty five dollars"}),
 ])
 def test_nominate_and_sold_grammar(text, expected):

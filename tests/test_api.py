@@ -68,13 +68,13 @@ def test_pick_stores_and_advances_turn(client):
 
 
 def test_voice_style_pick(client):
-    r = cmd(client, "low-db steph curry to Miele for 55 $", source="voice").json()
+    r = cmd(client, "ok banana steph curry to Miele for 55 $", source="voice").json()
     assert r["ok"] and r["player"]["name"] == "Stephen Curry" and r["price"] == 55
     assert r["state"]["picks"][-1]["source"] == "voice"
 
 
 def test_voice_words(client):
-    r = cmd(client, "low db curry to miele for fifty five dollars", "voice").json()
+    r = cmd(client, "okay banana curry to miele for fifty five dollars", "voice").json()
     assert r["ok"] and r["player"]["name"] == "Stephen Curry" and r["team"] == "Miele"
     assert r["price"] == 55
 
@@ -354,7 +354,7 @@ def test_skip_when_every_roster_is_full(client):
     assert client.post("/api/turn", json={}).json()["message"] == "Every roster is full."
 
 
-@pytest.mark.parametrize("text", ["go back", "back", "previous", "low-db go back"])
+@pytest.mark.parametrize("text", ["go back", "back", "previous", "ok banana go back"])
 def test_go_back_moves_the_turn_to_the_previous_team(client, text):
     cmd(client, "turn lode")
     r = cmd(client, text).json()

@@ -17,7 +17,7 @@ Grammar (F-29), English, an optional wake word in front:
     go back                              (turn to the previous team; also: back, previous)
     undo [N]                             (with a player on the block: clears the block only)
 
-Wake words `draftbot` and `low-db` (plus transcription variants) are stripped.
+Wake words `ok banana` and `draftbot` (plus transcription variants) are stripped.
 Amounts are digits or English number words, with `$`, `dollar(s)` or `bucks`
 before or after. No alias table (F-32): players are scored on bigram overlap with
 the full name and the surname, a prefix bonus, and a phonetic key plus soundex as
@@ -30,13 +30,15 @@ import unicodedata
 # ---------------------------------------------------------------- normalizing
 
 _SUFFIX = re.compile(r"\b(jr|sr|ii|iii|iv)\b")
-# The wake word on normalized text ("Low-DB," -> "low db"). voice/wake.py uses the
-# same pattern, so the listener and the parser always agree on what counts as the
-# wake word: low db, lowdb, low d b, low dee bee, lo db, low d bee, draftbot, ...
-WAKE_CORE = (r"(?:draft\s?bot"
-             r"|low?\s?(?:d\s?b|dee\s?bee|d\s?bee|dee\s?b)"
-             r"|low\s?deebee)")
-WAKE_FILLER = r"(?:hey|ok|okay|uh|um|so)"
+# The wake word on normalized text ("Ok, Banana." -> "ok banana"). voice/wake.py uses
+# the same pattern, so the listener and the parser always agree on what counts as the
+# wake word. "ok"/"okay" is a filler, so "ok banana", "okay banana" and a bare
+# "banana" (Whisper sometimes drops the first word) all count, and so do accented
+# spellings: "okiebannina", "oki banena", "okee banaan", "bananas", "banana's".
+# "low-db" was dropped on 2026-10-02: Whisper heard it 4 times out of 37 and often
+# as "Lode B", which is also a team.
+WAKE_CORE = r"(?:draft\s?bot|(?:ok(?:ay|ey|ee|ie|i)?\s?)?ban+[aei]+n+[aei]*s?)"
+WAKE_FILLER = r"(?:hey|ok|okay|okey|okee|okie|oki|uh|um|so)"
 _WAKE = re.compile(rf"^(?:{WAKE_FILLER}\s+)*{WAKE_CORE}\b\s*")
 SELF_WORDS = {"me", "mine", "myself", "self", "ik", "mij", "mijn"}
 

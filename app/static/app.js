@@ -55,7 +55,7 @@ const norm = s => (s||"").normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase()
   .replace(/['’`.]/g,"").replace(/[^a-z0-9]+/g," ").replace(/\b(jr|sr|ii|iii|iv)\b/g," ")
   .replace(/\s+/g," ").trim();
 /* Same wake-word pattern as app/parser.py WAKE_CORE. */
-const WAKE = /^(?:(?:hey|ok|okay|uh|um|so)\s+)*(?:draft\s?bot|low?\s?(?:d\s?b|dee\s?bee|d\s?bee|dee\s?b)|low\s?deebee)\b\s*/;
+const WAKE = /^(?:(?:hey|ok|okay|okey|okee|okie|oki|uh|um|so)\s+)*(?:draft\s?bot|(?:ok(?:ay|ey|ee|ie|i)?\s?)?ban+[aei]+n+[aei]*s?)\b\s*/;
 function bigrams(s){ const t = " "+s+" ", o = []; for(let i=0;i<t.length-1;i++) o.push(t.slice(i,i+2)); return o; }
 function dice(a,b){
   if(!a || !b) return 0; if(a === b) return 1;
@@ -265,7 +265,7 @@ async function backToHere(seq){
 }
 
 /* ---------------------------------------------------------------- voice
-   The listener (voice/listen.py) posts "low-db …" commands with source "voice"; the
+   The listener (voice/listen.py) posts "ok banana …" commands with source "voice"; the
    server keeps the latest result in STATE.voice.event, so this banner shows the same
    thing on every screen. A pending result (candidates or a missing amount; undo is
    never done by voice, the server rejects it)

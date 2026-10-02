@@ -1,7 +1,7 @@
 """
 Voice listener: captures the mic of the app laptop, cuts it into utterances with
 the Silero VAD that ships with faster-whisper, transcribes offline with Whisper,
-and forwards only utterances that start with the wake word "low-db" to
+and forwards only utterances that start with the wake word "ok banana" to
 POST /api/command with source "voice". The server runs the same parser as the
 typed command bar (F-30) and publishes the result in /api/state, so every screen
 shows what was heard.
@@ -312,7 +312,7 @@ class Listener:
         with sd.InputStream(samplerate=RATE, channels=1, dtype="float32", blocksize=FRAME,
                             device=device, callback=on_audio):
             name = sd.query_devices(device if device is not None else sd.default.device[0])["name"]
-            log(f'Listening on "{name}". Say "low-db" followed by a command. Ctrl+C stops.')
+            log(f'Listening on "{name}". Say "ok banana" followed by a command. Ctrl+C stops.')
             buf = np.zeros(0, dtype="float32")
             while True:
                 buf = np.concatenate([buf, q.get()])
@@ -326,7 +326,7 @@ class Listener:
 
 def main(argv=None):
     _utf8_console()
-    ap = argparse.ArgumentParser(description='Voice listener for the LoW draftboard ("low-db ...").')
+    ap = argparse.ArgumentParser(description='Voice listener for the LoW draftboard ("ok banana ...").')
     ap.add_argument("--model", default="base.en",
                     help="Whisper model: base.en (default, 145 MB) or small.en (484 MB, slower)")
     ap.add_argument("--server", default="http://127.0.0.1:8000", help="draftboard app URL")

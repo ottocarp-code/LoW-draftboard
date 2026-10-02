@@ -29,30 +29,37 @@ def voice(c):
 # ---------------------------------------------------------------- find_wake
 
 @pytest.mark.parametrize("text,expected", [
-    ("low-db steph curry to Miele for 55 dollars", "steph curry to Miele for 55 dollars"),
-    ("Low-DB, Steph Curry to Miele for $55.", "Steph Curry to Miele for $55"),
-    ("Low DB. Jokic to RJ for 30.", "Jokic to RJ for 30"),
-    ("lowdb sengun to lode", "sengun to lode"),
-    ("LowDB undo three", "undo three"),
-    ("low d b jokic to rj for 30", "jokic to rj for 30"),
-    ("Low D.B. jokic to rj for 30", "jokic to rj for 30"),
-    ("low dee bee jokic to rj for 30", "jokic to rj for 30"),
-    ("Low-Dee-Bee, undo.", "undo"),
-    ("lo db skip", "skip"),
-    ("Hey, low-db, turn roro.", "turn roro"),
-    ("Uh, low db bridges to rj for 5", "bridges to rj for 5"),
-    ("Okay. Low-DB undo 3", "undo 3"),
-    ("low-db", ""),
-    ("Low DB.", ""),
+    ("ok banana steph curry to Miele for 55 dollars", "steph curry to Miele for 55 dollars"),
+    ("Ok, banana. Steph Curry to Miele for $55.", "Steph Curry to Miele for $55"),
+    ("Okay banana, Jokic to RJ for 30.", "Jokic to RJ for 30"),
+    ("OK Banana sengun to lode", "sengun to lode"),
+    ("Banana, undo three", "undo three"),
+    ("Okay, bananas, jokic to rj for 30", "jokic to rj for 30"),
+    ("Ok banana's jokic to rj for 30", "jokic to rj for 30"),
+    ("ok bananna jokic to rj for 30", "jokic to rj for 30"),
+    ("Okay, banana. Undo.", "Undo"),
+    ("banana skip", "skip"),
+    ("Hey, banana, turn roro.", "turn roro"),
+    ("Uh, ok banana bridges to rj for 5", "bridges to rj for 5"),
+    ("Okay. Banana undo 3", "undo 3"),
+    # accented spellings (German/Dutch-sounding TTS voices, "okee banaan")
+    ("Okiebannina, nominate Jalen Johnson", "nominate Jalen Johnson"),
+    ("Oki Banena, sold to Lode for $12", "sold to Lode for $12"),
+    ("Okie Banena, Victor Wembanyama to RJ", "Victor Wembanyama to RJ"),
+    ("Okee banaan, undo", "undo"),
+    ("ok banana", ""),
+    ("Okay, banana.", ""),
 ])
 def test_find_wake_variants(text, expected):
     assert wake.find_wake(text) == expected
 
 
 @pytest.mark.parametrize("text", [
-    "curry to miele for 55", "", "   ", "Low. That was a low bid.", "lowe to rj for 5",
-    "lodge to rj for 5", "I think low-db is great", "so what", "hey", "below db",
-    "the low db", "Lowry to rj for 5",
+    "curry to miele for 55", "", "   ", "ok", "Okay.", "so what", "hey",
+    "I would like a banana", "the banana", "Bandana to rj for 5", "banner to rj for 5",
+    "Bannon to rj for 5", "Okafor to rj for 5", "okay so what",
+    # the old wake word no longer wakes the app (often heard as the team "Lode")
+    "low-db nominate curry", "Lode B, nominate Luka Doncic", "ODB, sold to RJ for $5",
 ])
 def test_find_wake_negatives(text):
     assert wake.find_wake(text) is None
@@ -60,13 +67,13 @@ def test_find_wake_negatives(text):
 
 def test_find_wake_keeps_money_and_decimals_raw():
     # The server's parser must still see "$" and "2.5" (rejected, not read as 25).
-    assert wake.find_wake("low-db jokic to rj for $2.5") == "jokic to rj for $2.5"
+    assert wake.find_wake("ok banana jokic to rj for $2.5") == "jokic to rj for $2.5"
 
 
 def test_listener_and_parser_agree_on_the_wake_word():
     import parser as P
-    for t in ["low-db", "Low DB,", "lowdb", "low d b", "low dee bee", "lo db", "hey low-db",
-              "okay so low db", "Uh, um, lowdb"]:
+    for t in ["ok banana", "Ok, banana,", "okay banana", "OK Banana.", "banana", "bananas",
+              "hey banana", "okay so banana", "Uh, um, ok banana", "draftbot"]:
         rest = wake.find_wake(f"{t} sengun to lode for 12")
         assert rest == "sengun to lode for 12", t
         assert P.parse_command(f"{t} sengun to lode for 12")["name"] == "sengun", t
@@ -81,7 +88,7 @@ TEAMS = ["RoRo", "RJ", "Gillese", "sexylexy", "Ceun", "Champximmissioner",
 def test_hotwords_order_and_content():
     hw = wake.build_hotwords(TEAMS, {"Miele": ["emiel", "amiel"]}, ["Nikola Jokic", "Luka Doncic"])
     parts = hw.split(", ")
-    assert parts[0] == "low-db"
+    assert parts[0] == "ok banana"
     assert parts[1:13] == TEAMS
     assert parts[13:15] == ["emiel", "amiel"]
     assert parts[15:] == ["Nikola Jokic", "Luka Doncic"]
@@ -109,7 +116,7 @@ def test_hotword_estimate_is_character_based_and_conservative():
 
 def test_hotwords_dedupe_and_skip_empty():
     hw = wake.build_hotwords(["Miele", "miele "], {"Miele": ["", "Miele", "emiel"]}, ["", "Emiel"])
-    assert hw == "low-db, Miele, emiel"
+    assert hw == "ok banana, Miele, emiel"
 
 
 # ---------------------------------------------------------------- segmenter (pure)
@@ -142,12 +149,12 @@ def test_segmenter_ignores_clicks():
 
 def test_voice_pick_goes_straight_in_and_is_shown(client):
     r = cmd(client, "steph curry to Miele for 55 dollars",
-            heard="Low-DB, Steph Curry to Miele for 55 dollars.").json()
+            heard="Ok banana, Steph Curry to Miele for 55 dollars.").json()
     assert r["ok"] and r["kind"] == "pick"
     s = state(client)
     assert s["picks"][-1]["source"] == "voice" and s["picks"][-1]["price"] == 55
     ev = s["voice"]["event"]
-    assert ev["kind"] == "pick" and ev["ok"] and ev["heard"].startswith("Low-DB, Steph")
+    assert ev["kind"] == "pick" and ev["ok"] and ev["heard"].startswith("Ok banana, Steph")
     assert "Stephen Curry to Miele for $55" in ev["message"] and ev["resolved"] is None
     assert "state" not in ev
 
@@ -228,12 +235,12 @@ def test_voice_not_a_command_is_an_error_event(client):
 
 
 @pytest.mark.parametrize("text", ["undo", "undo three", "undo 3", "scratch that",
-                                  "low-db undo two", "terug"])
+                                  "ok banana undo two", "terug"])
 def test_undo_by_voice_is_rejected_and_removes_nothing(client, text):
     for t in ("jokic to rj for 30", "curry to miele for 40", "sengun to lode for 10"):
         cmd(client, t, source="typed")
     before = state(client)
-    r = cmd(client, text, heard=f"Low-DB, {text}.")
+    r = cmd(client, text, heard=f"Ok banana, {text}.")
     assert r.status_code == 400
     body = r.json()
     assert not body["ok"] and body["kind"] == "error" and body["message"] == "Undo picks by typing."
@@ -241,7 +248,7 @@ def test_undo_by_voice_is_rejected_and_removes_nothing(client, text):
     assert after["picks"] == before["picks"] and after["turn_idx"] == before["turn_idx"]
     ev = after["voice"]["event"]
     assert ev["kind"] == "error" and ev["message"] == "Undo picks by typing."
-    assert ev["heard"] == f"Low-DB, {text}."
+    assert ev["heard"] == f"Ok banana, {text}."
     # the same text typed still works as before
     typed = cmd(client, text, source="typed").json()
     assert typed["kind"] in ("undo", "confirm_undo")
@@ -330,7 +337,7 @@ def test_voice_nominate_is_seen_by_every_screen(make_client, tmp_path):
     db = tmp_path / "two.db"
     a, b = make_client(db=db), make_client(db=db)
     rev = state(b)["rev"]
-    r = cmd(a, "nominate anthony edwards", heard="Low-DB, nominate Anthony Edwards.").json()
+    r = cmd(a, "nominate anthony edwards", heard="Ok banana, nominate Anthony Edwards.").json()
     assert r["ok"] and r["kind"] == "nominate" and r["voice_event"]["nominator"] == "RoRo"
     # the other window sees it on its next poll (same database, a new rev)
     s = state(b)
@@ -353,7 +360,7 @@ def test_voice_sold(client):
     assert s["voice"]["event"]["sold"] is True
 
 
-@pytest.mark.parametrize("text", ["undo", "low-db undo", "undo 3"])
+@pytest.mark.parametrize("text", ["undo", "ok banana undo", "undo 3"])
 def test_voice_undo_with_a_block_clears_only_the_block(client, text):
     cmd(client, "jokic to rj for 30", source="typed")
     cmd(client, "nominate anthony edwards")

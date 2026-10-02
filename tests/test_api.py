@@ -660,12 +660,14 @@ def test_headshot_route_serves_a_jpg_too(make_client, tmp_path):
     assert c.get("/headshots/nobody.png").status_code == 404
 
 
-def test_team_candidate_command_completes_the_pick(client):
+def test_team_candidate_completes_the_pick(client):
     r = cmd(client, "anthony edwards to an auto for 5")
     body = r.json()
     assert r.status_code == 400 and body["team_candidates"][0]["team"] == "Notto"
-    r2 = cmd(client, body["team_candidates"][0]["command"], source="click").json()
-    assert r2["ok"] and r2["state"]["picks"][-1]["team"] == "Notto"
+    assert body["command"] == "anthony edwards to an auto for 5"
+    r2 = client.post("/api/command", json={"text": body["command"], "team": "Notto",
+                                           "source": "click"}).json()
+    assert r2["ok"] and (r2["state"]["picks"][-1]["team"], r2["state"]["picks"][-1]["price"]) == ("Notto", 5)
 
 
 def test_voice_event_carries_team_candidates(client):
@@ -673,4 +675,7 @@ def test_voice_event_carries_team_candidates(client):
     r = cmd(client, "ok banana sold to gin for 5", source="voice").json()
     ev = r["voice_event"]
     assert not ev["ok"] and ev["team_candidates"][0]["team"] == "Gillese"
-    assert ev["team_candidates"][0]["command"] == "sold to Gillese for 5"
+    r2 = client.post("/api/command", json={"text": ev["command"], "team": "Gillese",
+                                           "source": "voice-click"}).json()
+    p = r2["state"]["picks"][-1]
+    assert r2["ok"] and r2["sold"] and (p["team"], p["price"], p["source"]) == ("Gillese", 5, "voice-click")

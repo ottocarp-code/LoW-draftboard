@@ -130,8 +130,10 @@ def create_app(db_path=None, values_path=None, headshots=None):
     def command(payload: dict = Body(...)):
         text = str(payload.get("text") or "")[:300]
         source = str(payload.get("source") or "typed")[:16]
+        # `team`: a team chosen from team_candidates, overriding the command's team text.
+        team = str(payload.get("team") or "")[:40] or None
         if source != "voice":
-            return run_command(text, source)
+            return run_command(text, source, team)
         with store.lock:
             if store.voice_state()["muted"]:
                 # The listener honours mute itself; this guards a stale listener.
@@ -142,7 +144,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 # voice undo goes through, and run_command then only clears the block.
                 res = fail("Undo picks by typing.", 400)
             else:
-                res = run_command(text, source)
+                res = run_command(text, source, team)
             body, status = res, 200
             if isinstance(res, JSONResponse):
                 body, status = json.loads(res.body), res.status_code
@@ -157,11 +159,11 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 out["state"] = store.state()          # includes the new voice event
             return JSONResponse(out, status_code=status)
 
-    def run_command(text, source):
+    def run_command(text, source, team=None):
         with store.lock:
             res = cmdparser.interpret(text, store.available(), store.teams, store.me,
                                       store.pool.league()["budget"], store.aliases,
-                                      block=bool(store.block))
+                                      block=bool(store.block), team=team)
             kind = res["kind"]
 
             if kind == "pick":
@@ -233,7 +235,8 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 if res.get("teams"):
                     extra["teams"] = res["teams"]
                 if res.get("team_candidates"):
-                    extra["team_candidates"] = res["team_candidates"]
+                    # the buttons run this same command again with `team` set
+                    extra.update(team_candidates=res["team_candidates"], command=text)
                 if res.get("action"):
                     extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)

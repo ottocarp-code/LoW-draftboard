@@ -376,17 +376,43 @@ def test_article_before_a_team_is_dropped():
     assert P.match_team("a dave", TEAMS) == ("Dave", "exact")
 
 
-@pytest.mark.parametrize("text,top,command", [
-    ("mitchell robinson to an auto for 5", "Notto", "mitchell robinson to Notto for 5"),
-    ("sold to gin for 33", "Gillese", "sold to Gillese for 33"),
-    ("sold to gin", "Gillese", "sold to Gillese"),
-    ("turn the pin", None, None),
+def test_a_nickname_with_an_article_still_matches_exactly():
+    aliases = {"Dave": ["the dude", "the lode"]}
+    assert P.match_team("the dude", TEAMS, None, aliases) == ("Dave", "alias")
+    # "the lode" is Dave's nickname, not the team Lode without its article
+    assert P.match_team("the lode", TEAMS, None, aliases) == ("Dave", "alias")
+
+
+@pytest.mark.parametrize("text,top", [
+    ("mitchell robinson to an auto for 5", "Notto"),
+    ("sold to gin for 33", "Gillese"),
+    ("sold to gin", "Gillese"),
+    ("turn the pin", None),
 ])
-def test_unknown_team_offers_the_closest_teams_as_commands(text, top, command):
+def test_unknown_team_offers_the_closest_teams(text, top):
     r = P.interpret(text, [], TEAMS, "Notto", 200)
     assert r["kind"] == "error" and "not recognised" in r["message"]
     cands = r["team_candidates"]
-    assert 1 <= len(cands) <= 3 and all(c["command"] for c in cands)
+    assert 1 <= len(cands) <= 3 and all(set(c) == {"team", "score"} for c in cands)
     assert [c["score"] for c in cands] == sorted((c["score"] for c in cands), reverse=True)
     if top:
-        assert cands[0]["team"] == top and cands[0]["command"] == command
+        assert cands[0]["team"] == top
+
+
+@pytest.mark.parametrize("text,kind,amount", [
+    ("sold to gin for 33", "sold", 33),
+    ("sold to gin", "sold", None),
+    ("turn the pin", "turn", None),
+])
+def test_chosen_team_replaces_only_the_team(text, kind, amount):
+    r = P.interpret(text, [], TEAMS, "Notto", 200, team="Gillese")
+    assert r["kind"] == kind and r["team"] == "Gillese" and r.get("amount") == amount
+
+
+def test_chosen_team_ending_in_a_number_is_not_an_amount():
+    # review finding: a rebuilt "sold to Team 13" became a sale for $13
+    teams = TEAMS + ["Team 13"]
+    r = P.interpret("sold to deem", [], teams, "Notto", 200)
+    assert any(c["team"] == "Team 13" for c in r["team_candidates"])
+    r = P.interpret("sold to deem", [], teams, "Notto", 200, team="Team 13")
+    assert r == {"kind": "sold", "team": "Team 13", "amount": None}

@@ -352,18 +352,23 @@ def match_team(query, teams, me=None, aliases=None):
     settings: a nickname matches with the same rules as the team name itself
     (exact, dice, prefix, anagram, soundex), for typed and voice input alike.
     """
-    q = _drop_article(normalize(query))
+    raw = normalize(query)
+    q = _drop_article(raw)
     if not q:
         return None, "empty"
     if q in SELF_WORDS:
         return me, "me"
     aliases = aliases or {}
+    # Exact first on the query as given ("the dude" may itself be a nickname), and
+    # only then without its article ("an auto" -> "auto").
+    for exact in dict.fromkeys((raw, q)):
+        for t in teams:
+            names = _team_names(t, aliases)
+            if exact in names:
+                return t, "exact" if exact == names[0] else "alias"
     scored = []
     for t in teams:
-        names = _team_names(t, aliases)
-        if q in names:
-            return t, "exact" if q == names[0] else "alias"
-        scored.append((max(_team_score(q, n) for n in names), t))
+        scored.append((max(_team_score(q, n) for n in _team_names(t, aliases)), t))
     scored.sort(key=lambda x: -x[0])
     if not scored or scored[0][0] < 0.5:
         return None, "unknown"
@@ -484,14 +489,18 @@ def _pick(name, team, amount_text):
             "amount_text": amount_text}
 
 
-def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
+def interpret(raw, pool, teams, me, budget, aliases=None, block=False, team=None):
     """
     Interprets a command against the available pool (list of (player, Name)).
     Always returns a dict with `kind`; on doubt `ambiguous` with candidates, never a guess.
     `block`: a player is on the block, so "<team> for <amount>" means "sold to <team>".
+    `team`: a team the user picked from team_candidates; it replaces the team text of
+    the parsed command, so nothing else about the command changes.
     """
     cmd = parse_command(raw)
     kind = cmd["kind"]
+    if team and kind in ("turn", "pick", "sold", "short_sold"):
+        cmd = {**cmd, "team": team}
 
     if kind == "short_sold":
         team, _ = match_team(cmd["team"], teams, me, aliases)
@@ -499,7 +508,7 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
             # Not a team: what it was before the shortcut existed (board search, or an
             # error with candidates for "<x> for <amount>" while someone is on the block).
             if block and cmd["with_for"]:
-                return _team_error(cmd["team"], "unknown", teams, aliases, _retry_sold(cmd))
+                return _team_error(cmd["team"], "unknown", teams, aliases, candidates=True)
             return {"kind": "search", "text": cmd["text"]}
         if not block:
             return {"kind": "error", "message": f"Nobody is on the block: nominate a player "
@@ -515,7 +524,7 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
     if kind == "turn":
         team, why = match_team(cmd["team"], teams, me, aliases)
         if not team:
-            return _team_error(cmd["team"], why, teams, aliases, lambda t: f"turn {t}")
+            return _team_error(cmd["team"], why, teams, aliases, candidates=True)
         return {"kind": "turn", "team": team}
 
     if kind == "nominate":
@@ -535,8 +544,7 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=False):
     if not team and kind == "sold":
         team = _team_glued_to(cmd["team"], teams, me, aliases)
     if not team:
-        retry = _retry_sold(cmd) if kind == "sold" else _retry_pick(cmd)
-        return _team_error(cmd["team"], why, teams, aliases, retry)
+        return _team_error(cmd["team"], why, teams, aliases, candidates=True)
 
     amount = cmd["amount"]
     if amount is not None and not (0 < amount <= budget):
@@ -579,27 +587,16 @@ def _resolve_player(name, pool):
     return {"kind": "found", "player": top_p, "score": round(top_s, 3)}
 
 
-def _team_error(q, why, teams, aliases=None, retry=None):
+def _team_error(q, why, teams, aliases=None, candidates=False):
     """
-    `retry(team)` rebuilds the command with that team, so the client can offer the
-    closest teams as buttons (team_candidates) that simply run the fixed command.
+    With `candidates`, the closest teams come along (team_candidates). The client
+    offers them as buttons that run the same command again with `team` set, so the
+    command is parsed once and player and amount stay exactly as they were heard.
     """
     msg = (f'Team "{q}" is ambiguous.' if why == "ambiguous"
            else f'Team "{q}" not recognised.')
     out = {"kind": "error", "message": msg, "teams": list(teams)}
-    if retry:
-        out["team_candidates"] = [{"team": t, "score": s, "command": retry(t)}
+    if candidates:
+        out["team_candidates"] = [{"team": t, "score": s}
                                   for t, s in team_candidates(q, teams, aliases)]
     return out
-
-
-def _for_amount(cmd):
-    return f' for {cmd["amount"]}' if cmd.get("amount") is not None else ""
-
-
-def _retry_sold(cmd):
-    return lambda t: f"sold to {t}{_for_amount(cmd)}"
-
-
-def _retry_pick(cmd):
-    return lambda t: f'{cmd["name"]} to {t}{_for_amount(cmd)}'

@@ -175,20 +175,25 @@ function handle(res, fromPrompt = false){
     default:
       say(res.message || "Something went wrong.", "err");
       if(res.candidates && res.candidates.length) candidatePrompt(res.candidates, null, null, "Closest:", res.action);
-      else if(res.team_candidates && res.team_candidates.length) teamPrompt(res.team_candidates);
+      else if(res.team_candidates && res.team_candidates.length) teamPrompt(res.team_candidates, res.command);
   }
 }
 
 /* Team not recognised: the closest teams as buttons. Each one runs the same command
-   with that team filled in (built by the server), so player and amount stay as typed. */
+   again with `team` set (no rebuilt text), so player and amount stay as typed. */
 function teamButtons(cands, run){
   return cands.map(c => h("button", {type: "button", class: "cand", onclick: () => run(c)},
     c.team, " ", h("small", {text: `${Math.round(c.score*100)}%`})));
 }
-function teamPrompt(cands){
+function teamPrompt(cands, command){
   const box = $("#prompt");
   box.append(h("span", {class: "muted", text: "Team:"}),
-    ...teamButtons(cands, async c => { handle(await api("/api/command", {text: c.command, source: "click"})); renderPlayers(); }),
+    ...teamButtons(cands, async c => {
+      const res = await api("/api/command", {text: command, team: c.team, source: "click"});
+      if(res.ok || ["need_amount", "ambiguous"].includes(res.kind)) $("#cmd").value = "";
+      handle(res);
+      renderPlayers();
+    }),
     h("button", {type: "button", text: "Cancel", onclick: () => { clearPrompt(); say(""); }}));
 }
 
@@ -336,7 +341,7 @@ function renderVoiceBar(ev){
     // how much) continues in the command bar, and the banner is settled on every screen.
     kids.push(...teamButtons(ev.team_candidates, async c => {
       voiceLock(true);
-      const res = await api("/api/command", {text: c.command, source: "voice-click"});
+      const res = await api("/api/command", {text: ev.command, team: c.team, source: "voice-click"});
       handle(res);
       if(res.ok) await voiceResolve(ev, res.message);
       else if(["ambiguous", "need_amount"].includes(res.kind)) await voiceResolve(ev, `${c.team}: continue in the command bar.`);

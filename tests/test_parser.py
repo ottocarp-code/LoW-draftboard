@@ -416,3 +416,19 @@ def test_chosen_team_ending_in_a_number_is_not_an_amount():
     assert any(c["team"] == "Team 13" for c in r["team_candidates"])
     r = P.interpret("sold to deem", [], teams, "Notto", 200, team="Team 13")
     assert r == {"kind": "sold", "team": "Team 13", "amount": None}
+
+
+def test_misspelled_names_that_start_with_an_article_still_match():
+    # review: fuzzy scoring dropped the query's article but not the name's
+    assert P.match_team("the dud", TEAMS, None, {"Dave": ["the dude"]}) == ("Dave", "match")
+    assert P.match_team("the bils", TEAMS[:11] + ["The Bulls"]) == ("The Bulls", "match")
+
+
+@pytest.mark.parametrize("text,action", [("sold to gin for 5", "sold"), ("gillis for 5", None),
+                                         ("curry to gin for 5", "pick"), ("turn the pin", "turn")])
+def test_team_errors_name_the_failed_action(text, action):
+    r = P.interpret(text, [], TEAMS, "Notto", 200, block=True)
+    if action is None:          # "gillis" is close enough to Gillese: no error at all
+        assert r["kind"] == "sold"
+    else:
+        assert r["kind"] == "error" and r["action"] == action

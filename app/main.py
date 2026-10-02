@@ -237,6 +237,11 @@ def create_app(db_path=None, values_path=None, headshots=None):
                 if res.get("team_candidates"):
                     # the buttons run this same command again with `team` set
                     extra.update(team_candidates=res["team_candidates"], command=text)
+                    block_player = store.block_player()
+                    if res.get("action") == "sold" and block_player:
+                        # who was on the block when it was heard: a later click on a
+                        # stale button must not sell a different player (client checks)
+                        extra["player"] = public(block_player)
                 if res.get("action"):
                     extra["action"] = res["action"]
                 return fail(res["message"], 400, **extra)

@@ -679,3 +679,12 @@ def test_voice_event_carries_team_candidates(client):
                                            "source": "voice-click"}).json()
     p = r2["state"]["picks"][-1]
     assert r2["ok"] and r2["sold"] and (p["team"], p["price"], p["source"]) == ("Gillese", 5, "voice-click")
+
+
+def test_failed_sold_pins_the_block_player_for_the_buttons(client):
+    cmd(client, "nominate anthony edwards")
+    body = cmd(client, "sold to gin for 5").json()
+    assert body["action"] == "sold" and body["player"]["name"] == "Anthony Edwards"
+    # a failed pick names no block player: its buttons re-match the heard player
+    body = cmd(client, "jayson tatum to gin for 5").json()
+    assert body["action"] == "pick" and "player" not in body

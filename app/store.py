@@ -66,6 +66,9 @@ EASTER_EGG = {
 }
 
 
+DEFAULT_CATEGORIES = ("PTS", "TPM", "REB", "AST", "STL", "BLK", "FG", "FT")
+
+
 class Pool:
     """values.json, reloaded when the file changes so a pipeline run needs no restart."""
 
@@ -140,6 +143,21 @@ class Pool:
         if self.error:
             return {"teams": len(DEFAULT_TEAMS), "budget": 200, "roster_spots": 13}
         return {k: self.config[k] for k in ("teams", "budget", "roster_spots")}
+
+    def categories(self):
+        """Active scoring categories (weight > 0) in config order, for the block's stat
+        table. Without values.json (or without a categories block) the default 8."""
+        cats = self.config.get("categories") if not self.error else None
+        if not isinstance(cats, dict):
+            return list(DEFAULT_CATEGORIES)
+        out = []
+        for k, w in cats.items():
+            try:
+                if float(w) > 0:
+                    out.append(k)
+            except (TypeError, ValueError):
+                continue
+        return out
 
 # ---------------------------------------------------------------- store
 

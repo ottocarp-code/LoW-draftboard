@@ -14,6 +14,9 @@ Elk bestand in data/ is een CSV met minstens deze kolommen:
     FGM, FGA, FTM, FTA, TPM, TPA
 Ontbrekende attempts worden gereconstrueerd (zie reconstruct).
 Een lege cel bij een tellende stat betekent nul.
+Optioneel: LY_GP, LY_MPG, LY_PTS, ... (de echte stats van vorig seizoen, uit
+fetch_espn.py). Die komen als "last" in values.json, enkel voor de weergave; ze
+tellen niet mee in de Z-scores of de waardes.
 """
 
 import csv
@@ -131,6 +134,27 @@ def per_game(row):
     return out
 
 
+LAST_STATS = ("GP", "MPG", "PTS", "TPM", "REB", "AST", "STL", "BLK", "TO")
+
+
+def last_season(row):
+    """
+    Vorig seizoen per wedstrijd uit de LY_-kolommen (seizoenstotalen), of None
+    als ze ontbreken of LY_GP 0 is (rookie, oude CSV). FG%/FT% uit makes en
+    attempts, None bij nul pogingen.
+    """
+    gp = num(row.get("LY_GP"))
+    if gp <= 0:
+        return None
+    out = {"GP": round(gp, 3), "MPG": round(num(row.get("LY_MPG")), 3)}
+    for k in LAST_STATS[2:]:
+        out[k] = round(num(row.get("LY_" + k)) / gp, 3)
+    fga, fta = num(row.get("LY_FGA")), num(row.get("LY_FTA"))
+    out["fg_pct"] = round(num(row.get("LY_FGM")) / fga, 4) if fga > 0 else None
+    out["ft_pct"] = round(num(row.get("LY_FTM")) / fta, 4) if fta > 0 else None
+    return out
+
+
 def merge(per_source, cfg):
     """Koppelt de bronnen op naam en geeft per speler het gemiddelde plus de spreiding."""
     anchor_rows = {names.normalize(r["name"]): r
@@ -150,16 +174,19 @@ def merge(per_source, cfg):
                 "pos": row.get("pos", ""), "player_id": row.get("player_id") or key,
                 "inj": row.get("inj", ""), "adp": num(row.get("adp")),
                 "market_value": num(row.get("market_value")),
-                "obs": defaultdict(list), "sources": [],
+                "obs": defaultdict(list), "sources": [], "last": None,
             })
             slot["sources"].append(src)
+            # Vorig seizoen enkel uit de ankerbron (ESPN): echte stats, geen consensus.
+            if src == cfg["anchor_source"] and slot["last"] is None:
+                slot["last"] = last_season(row)
             for k, v in pg.items():
                 slot["obs"][k].append(v)
 
     players = []
     for key, s in merged.items():
         p = {k: s[k] for k in ("name", "team", "pos", "player_id", "inj",
-                               "adp", "market_value")}
+                               "adp", "market_value", "last")}
         p["sources"] = sorted(set(s["sources"]))
         p["n_sources"] = len(p["sources"])
         for k, vals in s["obs"].items():
@@ -289,6 +316,7 @@ def write_outputs(ranked, cfg, meta):
                    ("GP", "MPG", "PTS", "TPM", "REB", "AST", "STL", "BLK", "TO",
                     "FGM", "FGA", "FTM", "FTA")},
             "fg_pct": round(p["FG_pct"], 4), "ft_pct": round(p["FT_pct"], 4),
+            "last": p.get("last"),
             "risk": p["risk"], "risk_basis": p["risk_basis"],
             "sources": p["sources"],
         } for p in ranked],
@@ -330,6 +358,9 @@ def main():
     print(f"replacement    : z = {ameta['z_replacement']:.2f} "
           f"(speler {ameta['drafted']})")
     print(f"attempts       : {notes}")
+    n_last = sum(1 for p in ranked if p.get("last"))
+    print(f"vorig seizoen  : {n_last} van {len(ranked)} draftbare spelers "
+          "(de rest is rookie, of de CSV heeft geen LY_-kolommen)")
     if len(per_source) == 1:
         print("LET OP: een bron, dus geen spreiding tussen bronnen. De risicokolom "
               "is een proxy op basis van geprojecteerde wedstrijden en blessurestatus.")

@@ -347,7 +347,7 @@ output/          values.json, paste_block.csv, top.txt
 | Route | Doel |
 |---|---|
 | `GET /board`, `GET /teams` | de twee views, zelfde pagina |
-| `GET /api/players` | spelerspool met waardes, ESPN-volgorde, foto-ID |
+| `GET /api/players` | spelerspool met waardes, ESPN-volgorde, foto-ID, vorig seizoen per wedstrijd (`last`, `null` voor rookies) en de actieve categorieën (`categories`, configvolgorde, gewicht > 0) |
 | `GET /api/state` | budgetten, max bids, picks, rosters, beurt |
 | `POST /api/command` | `{text, source}` vrij commando door de parser |
 | `POST /api/pick` | `{player_id, team, price}` bevestigde keuze |

@@ -62,8 +62,23 @@ def collect():
     return must + rest[:TARGET - len(must)]
 
 
+def last_season(rng, pg):
+    """Last season per game near the projection, or None (a rookie) for about 1 in 8.
+    Its own RNG, so adding it left every other fixture value unchanged."""
+    if rng.random() < 0.125:
+        return None
+    j = lambda v: round(max(0.0, v * rng.uniform(0.8, 1.15)), 3)
+    last = {"GP": float(rng.randint(30, 82)), "MPG": j(pg["MPG"])}
+    for k in ("PTS", "TPM", "REB", "AST", "STL", "BLK", "TO"):
+        last[k] = j(pg[k])
+    last["fg_pct"] = round(min(0.7, pg["FGM"] / pg["FGA"] * rng.uniform(0.95, 1.05)), 4)
+    last["ft_pct"] = round(min(0.95, pg["FTM"] / pg["FTA"] * rng.uniform(0.95, 1.05)), 4)
+    return last
+
+
 def main():
     rng = random.Random(2025)
+    rng_last = random.Random(2026)
     picked = collect()
     players = []
     for name, price in picked:
@@ -87,6 +102,7 @@ def main():
             "value": value, "market_value": round(value * rng.uniform(0.7, 1.3), 1),
             "adp": 0, "z_total": round(sum(z.values()) / 2 + value / 10, 3), "z": z, "pg": pg,
             "fg_pct": round(pg["FGM"] / pg["FGA"], 4), "ft_pct": round(pg["FTM"] / pg["FTA"], 4),
+            "last": last_season(rng_last, pg),
             "risk": round(rng.uniform(0, 0.6), 2), "risk_basis": "GP+blessure",
             "sources": ["espn"],
         })

@@ -38,6 +38,28 @@ def test_players_have_derived_espn_rank(client):
     assert all(p["adp"] == 0 for p in ps[len(with_adp):])       # no ADP last
 
 
+def test_players_carry_last_season_and_active_categories(client, tmp_path, make_client):
+    body = client.get("/api/players").json()
+    # TO has weight 0 in the fixture config, so it is not an active category.
+    assert body["categories"] == ["PTS", "TPM", "REB", "AST", "STL", "BLK", "FG", "FT"]
+    ps = body["players"]
+    assert all("last" in p for p in ps if p["id"] != "otto-carpentier")
+    vets = [p for p in ps if p.get("last")]
+    rookies = [p for p in ps if "last" in p and p["last"] is None]
+    assert vets and rookies
+    assert {"GP", "PTS", "TPM", "fg_pct", "ft_pct"} <= set(vets[0]["last"])
+    # TO switched on: it shows up as a category, after the others (config order).
+    data = json.load(open(conftest.FIXTURE, encoding="utf-8"))
+    data["config"]["categories"]["TO"] = 1
+    for p in data["players"]:
+        p.pop("last", None)                 # an old values.json without `last`
+    path = tmp_path / "values_to.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    body = make_client(values=str(path), db=tmp_path / "to.db").get("/api/players").json()
+    assert body["categories"][-1] == "TO" and len(body["categories"]) == 9
+    assert all("last" not in p for p in body["players"])
+
+
 def test_views_are_served(client):
     for path in ("/", "/board", "/teams"):
         r = client.get(path)

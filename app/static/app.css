@@ -219,24 +219,30 @@ button.voice.off{color:var(--muted)}
 /* ---------- the block: the nominated player, big on every view ---------- */
 #block{flex:none;margin:0 16px 6px;padding:10px 14px;border:2px solid var(--accent);
   border-radius:var(--radius);background:var(--panel);display:grid;
-  grid-template-columns:72px minmax(160px,auto) minmax(0,1fr) auto;gap:14px;align-items:center}
+  grid-template-columns:72px minmax(160px,1fr) auto auto;gap:14px;align-items:center}
 #block .ph,#block .ini{width:72px;height:72px;border-radius:10px;object-fit:cover;
   object-position:top center;background:var(--chip);display:flex;align-items:center;
   justify-content:center;font-size:24px;font-weight:600;color:var(--muted)}
 #block .bwho{display:flex;flex-direction:column;min-width:0}
 #block .bname{font-size:30px;line-height:1.1;letter-spacing:-.02em;color:var(--accent);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#block .bbids{display:flex;flex-wrap:wrap;gap:4px 6px;min-width:0}
-#block .bid{display:inline-flex;gap:5px;align-items:baseline;padding:2px 7px;border-radius:99px;
-  background:var(--chip);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
-#block .bid b{font-weight:600;max-width:9em;overflow:hidden;text-overflow:ellipsis}
-#block .bid.nom{box-shadow:inset 0 0 0 1px var(--accent)}
-#block .bid.me b{color:var(--me)}
-#block .bid.full{opacity:.5}
+/* Last season and the projection per game, one column per active category. */
+#block .bstatwrap{min-width:0;overflow-x:auto}
+#block .bstats{width:auto;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+#block .bstats th,#block .bstats td{padding:1px 0 1px 10px;text-align:right;border:0;
+  position:static;background:none;min-width:2.6em}
+#block .bstats tbody tr{cursor:default}
+#block .bstats tbody tr:hover{background:none}
+#block .bstats tbody tr+tr>*{border-top:1px solid var(--line)}
+#block .bstats thead th{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.04em}
+#block .bstats tbody th{color:var(--muted);font-size:12px;font-weight:500;text-align:left;padding-left:0}
+#block .bstats tr.proj td{font-weight:600}
+#block .bstats tr.none td{color:var(--muted)}
 #block .bact{display:flex;gap:6px}
 @media(max-width:900px){
   #block{grid-template-columns:56px minmax(0,1fr)}
   #block .ph,#block .ini{width:56px;height:56px}
   #block .bname{font-size:22px}
-  #block .bbids,#block .bact{grid-column:1/-1}
+  #block .bstatwrap,#block .bact{grid-column:1/-1}
 }

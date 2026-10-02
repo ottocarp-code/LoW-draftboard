@@ -14,6 +14,9 @@ Geen login. De publieke /players-route geeft maximaal 50 spelers alfabetisch en
 negeert de filter-header; de leaguedefaults-route respecteert hem wel.
 
 Statline 102027 = statSourceId 1 (projectie), statSplitTypeId 0.
+Statline 002026 = statSourceId 0 (echte stats van 2025-26), statSplitTypeId 0.
+Die zit in hetzelfde antwoord en komt in de LY_-kolommen (leeg voor rookies).
+Last season voedt de waardering niet; de app toont hem enkel op het blok.
 Tellende stats zijn SEIZOENSTOTALEN. MPG (28) en GP (42) staan los.
 """
 
@@ -55,6 +58,10 @@ COLUMNS = [
     "pct_owned", "GP", "MPG", "PTS", "REB", "AST", "STL", "BLK", "TO",
     "FGM", "FGA", "FTM", "FTA", "TPM", "TPA",
 ]
+# De echte stats van vorig seizoen (statline 00{SEASON-1}), zelfde ids, seizoenstotalen.
+LY_STATS = ("GP", "MPG", "PTS", "REB", "AST", "STL", "BLK", "TO",
+            "FGM", "FGA", "FTM", "FTA", "TPM", "TPA")
+COLUMNS += ["LY_" + k for k in LY_STATS]
 
 
 def fetch(limit):
@@ -71,16 +78,22 @@ def fetch(limit):
         return json.load(r)
 
 
+def statline(p, line_id):
+    """De stats-dict van statline `line_id` (bv. "102027"), of None."""
+    line = next((s for s in p.get("stats", [])
+                 if s.get("id") == line_id and s.get("stats")), None)
+    return line["stats"] if line else None
+
+
 def projection_row(entry):
     p = entry.get("player", entry)
-    line = next((s for s in p.get("stats", [])
-                 if s.get("id") == f"10{SEASON}" and s.get("stats")), None)
-    if line is None:
+    v = statline(p, f"10{SEASON}")
+    if v is None:
         return None
-    v = line["stats"]
+    ly = statline(p, f"00{SEASON - 1}") or {}
 
-    def g(key):
-        x = v.get(STAT[key])
+    def g(key, stats=v):
+        x = stats.get(STAT[key])
         return "" if x is None else round(float(x), 2)
 
     own = p.get("ownership") or {}
@@ -97,6 +110,7 @@ def projection_row(entry):
         "pct_owned": round(own.get("percentOwned") or 0, 1),
         **{k: g(k) for k in ("GP", "MPG", "PTS", "REB", "AST", "STL", "BLK", "TO",
                              "FGM", "FGA", "FTM", "FTA", "TPM", "TPA")},
+        **{"LY_" + k: g(k, ly) for k in LY_STATS},
     }
 
 
@@ -124,6 +138,9 @@ def main():
     missing = sum(1 for r in rows if r["FTA"] == "" or r["FGA"] == "")
     print(f"{len(players)} spelers opgehaald, {len(rows)} met projectie.")
     print(f"{missing} rijen zonder FGA of FTA (worden gereconstrueerd in build_values.py).")
+    last = sum(1 for r in rows if r["LY_GP"] not in ("", 0, 0.0))
+    print(f"{last} spelers met stats van {SEASON - 2}-{str(SEASON - 1)[2:]} "
+          f"(statline 00{SEASON - 1}); de rest is rookie of speelde niet.")
     print(f"Geschreven naar {os.path.normpath(OUT)}")
 
 

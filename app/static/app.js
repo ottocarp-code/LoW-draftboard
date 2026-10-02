@@ -11,6 +11,7 @@ const ESPN_CDN = id => `https://a.espncdn.com/i/headshots/nba/players/full/${enc
 const POLL_MS = 3000, FADE_MS = 420;
 
 let PLAYERS = [], BY_ID = new Map(), PLAYERS_REV = null;
+let CATEGORIES = ["PTS","TPM","REB","AST","STL","BLK","FG","FT"];   // active, config order
 let STATE = null;
 let view = "board", sortBy = "espn", layout = "cards";
 const fading = new Set();          // just-taken player ids, still shown while they fade out
@@ -116,6 +117,7 @@ async function loadPlayers(){
   PLAYERS = (d.players||[]).map(p => ({...p, _k: keyOf(p.name)}));
   BY_ID = new Map(PLAYERS.map(p => [String(p.id), p]));
   PLAYERS_REV = d.rev;
+  if(Array.isArray(d.categories)) CATEGORIES = d.categories;
   cardEls.clear(); rowEls.clear();
   $("#board").replaceChildren(); $("#list tbody").replaceChildren();
 }
@@ -403,14 +405,41 @@ function render(){
   else renderRosters();
 }
 
-/* The block (nominated, not yet sold): big on every view, with the max bid of every
-   team so the room sees who can still bid what. Rebuilt only when the player or the
-   nominator changes (no headshot reload on every poll); the max bids follow each render. */
+/* The block (nominated, not yet sold): big on every view, with last season's actual
+   stats and the projection per game in the active categories, so the room sees what
+   the player is worth. Static per nomination: rebuilt only when the player, the
+   nominator or the player pool changes (no headshot reload on every poll). */
+const STAT_LABEL = {TPM: "3PM", FG: "FG%", FT: "FT%"};
+const LAST_LABEL = "2025-26", PROJ_LABEL = "2026-27p";
+const fmtStat = v => (v == null || v === "" || !isFinite(v)) ? "–" : Number(v).toFixed(1);
+const fmtPct = v => (v == null || v === "" || !isFinite(v)) ? "–" : Number(v).toFixed(3).replace(/^0(?=\.)/, "");
+function statCells(src, pct){
+  /* src: {GP, PTS, TPM, ...} per game; pct: {FG, FT}. Null src → all "–". */
+  const cells = [src ? (src.GP == null ? "–" : String(Math.round(src.GP))) : "–"];
+  for(const c of CATEGORIES){
+    if(c === "FG" || c === "FT") cells.push(fmtPct(src ? pct[c] : null));
+    else cells.push(fmtStat(src ? src[c] : null));
+  }
+  return cells;
+}
+function blockStats(id){
+  const pl = BY_ID.get(String(id));
+  if(!pl) return h("div", {class: "bstats", hidden: true});
+  const last = pl.last || null, pg = pl.pg || null;
+  const row = (label, cells, cls) => h("tr", {class: cls},
+    h("th", {scope: "row", text: label}), ...cells.map(v => h("td", {text: v})));
+  return h("table", {class: "bstats"},
+    h("thead", {}, h("tr", {}, h("th", {}), h("th", {scope: "col", text: "GP"}),
+      ...CATEGORIES.map(c => h("th", {scope: "col", text: STAT_LABEL[c] || c})))),
+    h("tbody", {},
+      row(LAST_LABEL, statCells(last, last ? {FG: last.fg_pct, FT: last.ft_pct} : {}), last ? "" : "none"),
+      row(PROJ_LABEL, statCells(pg, {FG: pl.fg_pct, FT: pl.ft_pct}), "proj")));
+}
 let blockShown = null;
 function renderBlock(){
   const el = $("#block"), b = STATE.block;
   if(!b){ el.hidden = true; el.replaceChildren(); blockShown = null; return; }
-  const key = `${b.player.id}|${b.nominator}`;
+  const key = `${b.player.id}|${b.nominator}|${PLAYERS_REV}`;
   if(key !== blockShown){
     blockShown = key;
     const p = b.player;
@@ -422,7 +451,7 @@ function renderBlock(){
         h("span", {class: "flabel", text: "On the block"}),
         h("strong", {class: "bname", text: p.name, title: p.name}),
         h("span", {class: "muted", text: meta})),
-      h("div", {class: "bbids", id: "blockBids"}),
+      h("div", {class: "bstatwrap"}, blockStats(p.id)),
       h("div", {class: "bact"},
         h("button", {type: "button", class: "primary", text: "Sold…", title: "Choose the team and amount",
           onclick: () => { say(`${p.name} sold: choose the team and amount.`, "ask"); amountPrompt(p, null); }}),
@@ -430,10 +459,6 @@ function renderBlock(){
           onclick: async () => handle(await api("/api/block/clear", {}))})));
     el.hidden = false;
   }
-  $("#blockBids").replaceChildren(...STATE.teams.map(t =>
-    h("span", {class: `bid${t.full ? " full" : ""}${t.name === b.nominator ? " nom" : ""}${t.is_me ? " me" : ""}`,
-               title: `${t.name}: max bid $${t.max_bid}`},
-      h("b", {text: t.name}), h("span", {text: t.full ? "full" : `$${t.max_bid}`}))));
 }
 
 function takenIds(){ return new Set((STATE ? STATE.picks : []).map(p => String(p.player_id))); }

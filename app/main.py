@@ -11,7 +11,9 @@ Environment:
 
 Routes (FRD section 8, plus multi-undo and reset):
     GET  /, /board, /teams      the single-page app (both views)
-    GET  /api/players           player pool with values, ESPN rank, headshot id
+    GET  /api/players           player pool with values, ESPN rank, headshot id, last
+                                season (`last`, null for rookies) and the active
+                                scoring `categories` (config order, weight > 0)
     GET  /api/state             budgets, max bids, picks, rosters, turn, rev
     POST /api/command           {text, source}  free text through the parser
     POST /api/pick              {player_id, team, price, source}
@@ -48,7 +50,7 @@ from store import ROOT, Store  # noqa: E402
 STATIC = os.path.join(HERE, "static")
 _ID = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
 PUBLIC_FIELDS = ("id", "name", "team", "pos", "inj", "value", "market_value", "adp",
-                 "z_total", "z", "pg", "fg_pct", "ft_pct", "risk", "risk_basis", "sources",
+                 "z_total", "z", "pg", "fg_pct", "ft_pct", "last", "risk", "risk_basis", "sources",
                  "espn_rank", "value_rank")
 
 
@@ -120,6 +122,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
             store.pool.refresh()
             return {"rev": store.pool.rev, "error": store.pool.error,
                     "meta": store.pool.meta, "league": store.pool.league(),
+                    "categories": store.pool.categories(),
                     "players": [public(p) for p in store.pool.players]}
 
     @app.get("/api/state")

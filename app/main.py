@@ -175,7 +175,7 @@ def create_app(db_path=None, values_path=None, headshots=None):
             kind = res["kind"]
             if (expect_player is not None and kind in ("pick", "need_amount", "ambiguous")
                     and (res.get("player") or {}).get("id") != expect_player):
-                return fail("The player heard is no longer available: give the pick again.", 409)
+                return fail("The pick changed since it was heard: give it again.", 409)
 
             if kind == "pick":
                 return do_pick(res["player"]["id"], res["team"], res["amount"], source)

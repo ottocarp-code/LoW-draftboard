@@ -555,12 +555,15 @@ def interpret(raw, pool, teams, me, budget, aliases=None, block=None, team=None)
     if not team and kind == "sold":
         team = _team_glued_to(cmd["team"], teams, me, aliases)
     if not team:
+        if kind != "pick":
+            return _team_error(cmd["team"], why, teams, aliases, candidates=True, action=kind)
+        # A pick gets team buttons only when its player is clear, and the heard player is
+        # pinned: a click must never pick whoever the name happens to match by then.
+        heard = _resolve_player(cmd["name"], pool)
+        if heard["kind"] != "found":
+            return _team_error(cmd["team"], why, teams, aliases)
         err = _team_error(cmd["team"], why, teams, aliases, candidates=True, action=kind)
-        if kind == "pick":
-            # pin the heard player: a later click must not pick whoever the name matches then
-            heard = _resolve_player(cmd["name"], pool)
-            if heard["kind"] == "found":
-                err["player_id"] = heard["player"]["id"]
+        err["player_id"] = heard["player"]["id"]
         return err
 
     amount = cmd["amount"]

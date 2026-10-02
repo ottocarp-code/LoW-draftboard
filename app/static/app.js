@@ -335,10 +335,12 @@ function renderVoiceBar(ev){
   voiceShown = key;
   const teamPick = !ev.resolved && !ev.ok && (ev.team_candidates || []).length > 0;
   const pending = teamPick || (!ev.resolved && ["ambiguous", "need_amount"].includes(ev.kind));
-  const cls = ev.resolved || ev.ok ? "ok" : pending ? "ask" : "err";
+  // A team click the server refused settles the banner too, marked "Refused: ..."
+  const refused = !!ev.resolved && ev.resolved.startsWith("Refused: ");
+  const cls = refused ? "err" : ev.resolved || ev.ok ? "ok" : pending ? "ask" : "err";
   const kids = [h("span", {class: "vtag", text: "Voice"}),
                 h("q", {class: "heard", text: ev.heard || ""}),
-                h("span", {class: `vres ${cls}`, text: ev.resolved ? `Done: ${ev.resolved}` : (ev.message || "")})];
+                h("span", {class: `vres ${cls}`, text: ev.resolved ? (refused ? ev.resolved : `Done: ${ev.resolved}`) : (ev.message || "")})];
   if(teamPick){
     // A click runs the heard command with that team; a follow-up prompt (which player,
     // how much) continues in the command bar, and the banner is settled on every screen.
@@ -349,7 +351,9 @@ function renderVoiceBar(ev){
       handle(res);
       if(res.ok) await voiceResolve(ev, res.message);
       else if(["ambiguous", "need_amount"].includes(res.kind)) await voiceResolve(ev, `${c.team}: continue in the command bar.`);
-      else voiceLock(false);
+      // refused (block or player changed, team renamed): the buttons can never work
+      // again, so settle the banner on every screen instead of leaving them hanging
+      else await voiceResolve(ev, `Refused: ${res.message || "not done."}`);
     }));
   }
   if(pending && ev.kind === "ambiguous"){

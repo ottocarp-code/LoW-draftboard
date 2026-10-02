@@ -389,8 +389,8 @@ def test_a_nickname_with_an_article_still_matches_exactly():
     ("sold to gin", "Gillese"),
     ("turn the pin", None),
 ])
-def test_unknown_team_offers_the_closest_teams(text, top):
-    r = P.interpret(text, [], TEAMS, "Notto", 200)
+def test_unknown_team_offers_the_closest_teams(pool, text, top):
+    r = P.interpret(text, pool, TEAMS, "Notto", 200)
     assert r["kind"] == "error" and "not recognised" in r["message"]
     cands = r["team_candidates"]
     assert 1 <= len(cands) <= 3 and all(set(c) == {"team", "score"} for c in cands)
@@ -426,9 +426,16 @@ def test_misspelled_names_that_start_with_an_article_still_match():
 
 @pytest.mark.parametrize("text,action", [("sold to gin for 5", "sold"), ("gillis for 5", None),
                                          ("curry to gin for 5", "pick"), ("turn the pin", "turn")])
-def test_team_errors_name_the_failed_action(text, action):
-    r = P.interpret(text, [], TEAMS, "Notto", 200, block=True)
+def test_team_errors_name_the_failed_action(pool, text, action):
+    r = P.interpret(text, pool, TEAMS, "Notto", 200, block=True)
     if action is None:          # "gillis" is close enough to Gillese: no error at all
         assert r["kind"] == "sold"
     else:
         assert r["kind"] == "error" and r["action"] == action
+
+
+def test_pick_with_an_unsure_player_and_unknown_team_has_no_buttons(pool):
+    r = P.interpret("bridges to an auto for 5", pool, TEAMS, "Notto", 200)
+    assert r["kind"] == "error" and "team_candidates" not in r
+    r = P.interpret("stephen curry to an auto for 5", pool, TEAMS, "Notto", 200)
+    assert r["team_candidates"][0]["team"] == "Notto" and r["player_id"]

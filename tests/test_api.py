@@ -728,7 +728,7 @@ def test_stale_pick_button_never_picks_another_player(client):
     cmd(client, "anthony edwards to rj for 3")
     r = client.post("/api/command", json={"text": body["command"], "team": "Notto",
                                           "expect_player": body["player_id"], "source": "click"})
-    assert r.status_code == 409 and "no longer available" in r.json()["message"]
+    assert r.status_code == 409 and "changed since it was heard" in r.json()["message"]
     assert [p["team"] for p in state(client)["picks"]] == ["RJ"]
 
 
@@ -738,3 +738,11 @@ def test_team_button_for_a_renamed_team_is_refused(client):
                                           "expect_player": body["player_id"], "source": "click"})
     assert r.status_code == 400 and "no longer exists" in r.json()["message"]
     assert state(client)["picks"] == []
+
+
+def test_unsure_player_and_unknown_team_offer_no_team_buttons(client):
+    # review round 5: "bridges" was unsure; a team click later picked Miles Bridges
+    body = cmd(client, "bridges to an auto for 5").json()
+    assert "not recognised" in body["message"] and "team_candidates" not in body
+    cmd(client, "mikal bridges to rj for 3")
+    assert [p["name"] for p in state(client)["picks"]] == ["Mikal Bridges"]

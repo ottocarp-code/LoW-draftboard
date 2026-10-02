@@ -35,7 +35,7 @@
 
 ## 2026-09-28 — Einde sessie
 
-- **Stand:** De rebuild en de spraakbesturing zijn gebouwd en gepusht (`a6db255`). De gebruiker heeft spraak getest met de headset: de zin kwam 0,7 s na het einde van de zin binnen. `nominate curry` faalt nog, zoals verwacht, want nominate/sold is nog niet gebouwd.
+- **Stand:** De rebuild en de spraakbesturing zijn gebouwd en gepusht (`a6db255`). De gebruiker heeft spraak getest met de laptopmicro (rechtgezet op 2026-10-02, stond eerder als headset): de zin kwam 0,7 s na het einde van de zin binnen. `nominate curry` faalt nog, zoals verwacht, want nominate/sold is nog niet gebouwd.
 - **Volgende stap:** Het plan voor nominate/sold via `/bmad-build`. Alle beslissingen staan in `_bmad-output/deferred-work.md` en `.claude/STATE.md`. Daarna de kalibratierun van de gebruiker.
 - **Open in de werkboom:** `run.bat` gebruikt nu de `.venv`, en `.gitignore` negeert `.venv/`. Beide zijn nog niet gecommit.
 
@@ -53,3 +53,63 @@
 - **Keuze:** Nominate/sold gaat voor het spraaktraject, want de opnames van fase 0 moeten de definitieve commando's gebruiken. Fase 0+1 van het spraaktraject staat in `deferred-work.md`. Een tweede nominate geeft een fout. Een undo met een speler op het blok leegt enkel het blok. De pick in één stap blijft werken.
 - **Checks:** 270 tests zijn groen (210 voordien). De review gaf 4 fixes: "gary" was ambigu door de bijnaamregel, de "Closest:"-klik na een mislukte nominate maakte een pick, bij een rename bleef de oude teamnaam op het blok staan, en een test ontbrak. 1 bevinding over de volgorde van foutmeldingen is afgewezen.
 - **Aanpassingen:** De parser kent nu nominate/sold en drie nieuwe scoreregels. Het blok staat in `settings` (store), met de routes `/api/nominate` en `/api/block/clear` en een blokpaneel op elk scherm. Het plan staat in `_bmad-output/plan-nominate-sold.md`, het detaillog in `.claude/logs/nominate-sold.md`.
+
+## 2026-10-02 — Fix: nominate via klik op het bord
+
+- **Probleem:** Na `nominate johnson` opende een klik op een kaart van het bord de pickprompt in plaats van te nomineren. Enkel de knoppen in de kandidatenrij nomineerden.
+- **Keuze:** Een klik op het bord nomineert zolang er een nominate loopt: de commandobalk begint met "nominate", of de rij "Nominate:" staat open. Anders blijft het de pickprompt.
+- **Checks/aanpassingen:** `onPlayerClick` en `nominating()` in `app/static/app.js`. 270 tests groen. Headless Chrome: getypt+klik, Enter+klik en een gewone klik werken alle drie zoals bedoeld.
+
+## 2026-10-02 — Spraak: spike met een gesloten vocabulaire voor spelersnamen
+
+- **Probleem:** Whisper verminkt spelersnamen. De vraag was of we de uitvoer kunnen beperken tot de spelers in de pool (grammar/constrained decoding). De gebruiker reikte de NBA-pronunciation guide aan als testdata.
+- **Checks:** Een bench op 464 NBA-clips (310 pool, 154 niet-pool). whisper.cpp met GBNF kapt namen af en is slechter en trager, dus afgevallen. Een eigen trie-constrained beam search op faster-whisper haalt 75% top-1 (82% met beam 24), tegenover 37% voor het huidige pad. Na de beslisregel: 50% meteen juist en 0% fout, met 2% false accepts op niet-pool. Detail staat in `.claude/logs/grammar-spike.md`.
+- **Keuze:** Nog geen. Het is veelbelovend, maar de latency is 2,3 tot 7,4 s per clip in de naïeve vorm. Er is ook nog geen test met echte commando's en onze eigen stemmen. De beslissing ligt bij de gebruiker.
+- **Aanpassingen:** Geen in de app. De scripts staan in de scratchpad.
+
+## 2026-10-02 — Spike: snelheid van het gesloten vocabulaire
+
+- **Probleem:** Trie-decoding duurde 2,3 tot 7,4 s per zin, en dat is te traag.
+- **Checks:** Alle namen exhaustief scoren kost ongeveer 33 s, en het croppen van de encoder-output breekt de scores. Een hybride (de huidige matcher geeft een top-4, Whisper scoort enkel die) haalt top-1 77% en 58% meteen juist, met 0% fout, tegenover 37% nu. Dat kost ongeveer 0,2 tot 0,4 s extra, dus zo'n 1,0 tot 1,1 s per zin.
+- **Keuze:** De hybride is de kandidaat. De gebruiker koos optie 3: eerst snelheid, dan een test op eigen stemmen. Stap 2 vraagt een opnametool, en die is nog niet gebouwd (eerst akkoord vragen).
+- **Aanpassingen:** Geen in de app. Detail staat in `.claude/logs/grammar-spike.md`.
+
+## 2026-10-02 — Microfoon niet langer vastgelegd
+
+- **Probleem:** De "headset mic" stond als locked decision in `STATE.md`, maar de gebruiker herinnert zich niet die keuze gemaakt te hebben.
+- **Keuze:** Geschrapt uit de locked decisions. De micro (headset of laptop) blijft open en wordt gemeten met `voice/record.py`, met een set per micro.
+- **Aanpassingen:** De regel in `.claude/STATE.md` is aangepast. Rechtzetting: alle tests tot nu toe, ook de kalibratie, liepen met de laptopmicro. "Headset" is op 3 plaatsen in `STATE.md` en `LOGBOEK.md` verbeterd.
+
+## 2026-10-02 — Spraak: eerste echte opnames (37 takes, laptopmicro)
+
+- **Probleem:** Het hybride pad meten op de eigen stem, niet enkel op de NBA-clips.
+- **Checks:** Het wake word "low-db" werd maar 4 van de 37 keer herkend, en het klinkt als team "Lode". Spelers: de hybride 21/25 meteen juist, tegenover 16/25 nu (0 fout). Teams: 14/17 tegenover 10/17, maar met 1 fout team door een bug in het spike-script. Een deel van de missers komt van de parser: "sold" wordt gehoord als "soul" of "sol", en "to" valt weg.
+- **Keuze:** Nog geen. Openstaand: een nieuw wake word kiezen en testen, quick wins in de parser, en de hybride pas inbouwen na een fix van de span-bug.
+- **Aanpassingen:** `voice/record.py`, een test, en `data/recordings/` in `.gitignore`. Niet gecommit. Detail staat in `.claude/logs/grammar-spike.md`.
+
+## 2026-10-02 — Wake word: "low-db" vervangen door "ok banana"
+
+- **Probleem:** "low-db" werd in de opnames maar 4 van de 37 keer herkend, en klinkt als "Lode B" (botst met team Lode).
+- **Opties:** auctioneer, hey draftboard, computer, ok banana. De gebruiker kiest **ok banana** (gewone Engelse woorden met een vaste spelling, en bijna nooit gezegd in geroezemoes).
+- **Checks:** TTS met 5 stemmen: 24/30 meteen herkend. De 6 missers (Duitse stem: "Okiebannina", "Oki Banena") worden herkend sinds het patroon accentvarianten toelaat (okie/oki/okee, banena/banaan). Er zijn negatieve tests voor banner, Bannon, bandana, "the banana", "low-db" en "Lode B". 281 tests groen.
+- **Aanpassingen:** `WAKE_CORE`/`WAKE_FILLER` (`app/parser.py`), `app.js` WAKE, `voice/wake.py` (hotword), de teksten in listen/calibrate/record, de tests en de README. `draftbot` blijft werken. Niet gecommit.
+
+## 2026-10-02 — Parser: lossere sleutelwoorden en typ-shortcuts
+
+- **Probleem:** Whisper hoort "sold" als soul/sol, "to" als the/two of geplakt ("sold today"), en "nominate" als nominates/nomineen. Typen moet ook korter kunnen.
+- **Keuze:** sold accepteert sold/soul/sol/sole/solde. Na sold telt to/2/the/two/too. Een geplakte "to" wordt opnieuw geprobeerd, en enkel aanvaard als er één duidelijk team uitkomt. Elk "nomin..."-woord en `nm` betekent nominate. `<team> for <bedrag>` of `<team> <bedrag>` betekent "sold to", maar enkel met een speler op het blok en een herkend team. Anders blijft het gedrag zoals vroeger.
+- **Checks:** Geen enkele speler of team heeft deze woorden in zijn naam. 304 tests groen, met de echte transcripties als testgevallen. In headless Chrome filtert het bord correct op `nm jal`, `soul to rj` en `rj for 5`, zonder JS-fouten.
+- **Aanpassingen:** `app/parser.py` (`parse_command`, `interpret(block=)`, `_team_glued_to`), `app/main.py` (geeft block door) en `app.js` (`nameFragment`, `NOMINATE`). Plus tests. Niet gecommit.
+
+## 2026-10-02 — Easter egg: Otto Carpentier, draftable voor $1
+
+- **Vraag:** De gebruiker wil zichzelf als draftbare speler voor $1, met een eigen (AI-)foto.
+- **Keuze:** Hij wordt toegevoegd bij het laden van de pool (`store.EASTER_EGG`), niet in `values.json`, zodat een pipeline-run hem niet weghaalt. Value $1, PF BOS, geen ADP. De foto staat in `data/headshots/otto-carpentier.jpg` (genegeerd door git, dus niet op GitHub). De headshot-route aanvaardt nu ook `.jpg`.
+- **Checks:** 306 tests groen. Er is een screenshot op een testinstantie met de echte data: de kaart staat er met de foto.
+
+## 2026-10-02 — Teamkeuze met knoppen bij een onbekend team
+
+- **Probleem:** "Mitchell Robinson to an auto for 5" gaf enkel "Team not recognised", terwijl spelers bij twijfel wel kandidaatknoppen krijgen.
+- **Keuze:** Een team dat niet herkend wordt, geeft de top 3 teams als knoppen met een tekstscore. Elke knop voert hetzelfde commando uit met dat team ingevuld (de server bouwt het commando), dus speler en bedrag blijven behouden. Een lidwoord vooraan valt weg ("an auto" wordt "auto"). Een team wordt nooit automatisch gekozen. Akoestisch rescoren van teams volgt later met de hybride.
+- **Checks:** 313 tests groen. In headless Chrome werkt het getypte pad (Notto 36%, klik geeft een pick) en de spraakbanner (Gillese 33%, klik geeft een sold, ook afgehandeld op andere schermen). Geen JS-fouten.
+- **Aanpassingen:** `parser.py` (`team_candidates`, `_drop_article`, retry-commando's in `_team_error`), `main.py`, `store.py` (`VOICE_EVENT_FIELDS`), `app.js` (`teamPrompt`, knoppen in de banner) en tests. Niet gecommit.

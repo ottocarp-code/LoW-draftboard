@@ -33,6 +33,10 @@ dependencies.
 | `/board` | pickhistorie links, beurtbalk, budgetten van alle teams, bord met beschikbare spelers |
 | `/teams` | twaalf kolommen van dertien plekken, in de vorm van de oude draftsheets |
 
+Op een tv naast elkaar (elk een half scherm) open je het bord best als
+`/board?picks=off`: de picks staan al in de teamsview, en zo blijven de
+spelerskaarten in beeld. De knop "Hide picks" / "Show picks" doet hetzelfde.
+
 Beide kunnen tegelijk open staan in twee vensters op twee schermen. Ze pollen
 elke drie seconden dezelfde server en lopen dus vanzelf gelijk.
 

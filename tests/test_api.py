@@ -76,6 +76,16 @@ def test_frontend_has_no_cdn_assets_and_no_innerhtml():
     assert "innerHTML" not in js and "localStorage" not in js and "sessionStorage" not in js
 
 
+def test_board_picks_toggle_lives_in_the_url():
+    static = os.path.join(conftest.ROOT, "app", "static")
+    html = open(os.path.join(static, "index.html"), encoding="utf-8").read()
+    js = open(os.path.join(static, "app.js"), encoding="utf-8").read()
+    css = open(os.path.join(static, "app.css"), encoding="utf-8").read()
+    assert 'id="picksBtn" class="boardonly"' in html
+    assert '"?picks=off"' in js and 'get("picks") === "off"' in js
+    assert "body.nopicks:not(.teams) #history{display:none}" in css
+
+
 # ---------------------------------------------------------------- I/O matrix
 
 def test_pick_stores_and_advances_turn(client):

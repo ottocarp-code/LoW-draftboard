@@ -14,6 +14,10 @@ let PLAYERS = [], BY_ID = new Map(), PLAYERS_REV = null;
 let CATEGORIES = ["PTS","TPM","REB","AST","STL","BLK","FG","FT"];   // active, config order
 let STATE = null;
 let view = "board", sortBy = "espn", layout = "cards";
+// Picks column hidden on the board, per window: kept in the URL (?picks=off) so a
+// bookmarked TV window keeps it. No browser storage (F-45).
+const picksOffInUrl = () => new URLSearchParams(location.search).get("picks") === "off";
+let picksHidden = picksOffInUrl();
 const fading = new Set();          // just-taken player ids, still shown while they fade out
 const cardEls = new Map(), rowEls = new Map(), logEls = new Map();
 
@@ -684,9 +688,14 @@ function setView(v, push = true){
   for(const b of $("#viewSeg").children) b.setAttribute("aria-pressed", String(b.dataset.view === v));
   $("#viewBoard").hidden = v !== "board";
   $("#viewTeams").hidden = v !== "teams";
-  const path = v === "board" ? "/board" : "/teams";
-  if(push && location.pathname !== path) history.pushState({v}, "", path);
+  const path = viewPath(v);
+  if(push && location.pathname + location.search !== path) history.pushState({v}, "", path);
   render();
+}
+const viewPath = v => (v === "board" ? "/board" : "/teams") + (picksHidden ? "?picks=off" : "");
+function applyPicks(){
+  document.body.classList.toggle("nopicks", picksHidden);
+  $("#picksBtn").textContent = picksHidden ? "Show picks" : "Hide picks";
 }
 const viewFromUrl = () => location.pathname.startsWith("/teams") ? "teams" : "board";
 
@@ -733,13 +742,19 @@ $("#layoutBtn").onclick = () => {
   $("#layoutBtn").textContent = layout === "cards" ? "List" : "Cards";
   renderPlayers();
 };
-window.addEventListener("popstate", () => setView(viewFromUrl(), false));
+$("#picksBtn").onclick = () => {
+  picksHidden = !picksHidden;
+  applyPicks();
+  history.replaceState(history.state, "", viewPath(view));
+};
+window.addEventListener("popstate", () => { picksHidden = picksOffInUrl(); applyPicks(); setView(viewFromUrl(), false); });
 let resizeTimer = null;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if(view === "teams") shortenNames(); }, 120); });
 
 (async function init(){
   view = viewFromUrl();
   document.body.classList.toggle("teams", view === "teams");
+  applyPicks();
   for(;;){
     try { await loadPlayers(); break; } catch(e){ await new Promise(r => setTimeout(r, POLL_MS)); }
   }

@@ -185,7 +185,11 @@ achternaam. De volledige naam staat in de tooltip.
 
 **F-27.** Een vaste kolom links toont de pickhistorie met de nieuwste pick
 bovenaan, inclusief foto, spelersnaam, kopend team en prijs. De kolom is zichtbaar
-op beide views.
+op beide views. Op het bord kan ze per venster verborgen worden (knop "Hide picks",
+bewaard in de URL als `/board?picks=off`), want de teamsview toont de picks ook. In
+een smal venster (onder 900px, bv. een halve tv naast de teamsview) wordt ze op het
+bord een korte strook met regels van één lijn zonder foto, zodat de spelerskaarten
+in beeld blijven.
 
 **F-28.** De meest recente pick is visueel gemarkeerd.
 
@@ -257,7 +261,8 @@ volgorde waarin de teams getoond worden.
 ### 5.8 Meerdere schermen
 
 **F-42.** Beide views hebben een eigen URL (`/board` en `/teams`) en kunnen dus in
-twee browservensters op twee schermen open staan.
+twee browservensters op twee schermen open staan. Een verborgen pickkolom
+(`?picks=off`, F-27) blijft bij het wisselen van view in de URL staan.
 
 **F-43.** Elke geopende view pollt de server elke 3 seconden en loopt daardoor
 vanzelf gelijk met de rest. Er is geen handmatige verversing nodig.

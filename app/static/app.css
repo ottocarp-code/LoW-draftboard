@@ -192,7 +192,18 @@ dialog input,dialog select{font:inherit;padding:6px 8px;border:1px solid var(--l
   .shell{grid-template-columns:1fr;grid-template-rows:160px minmax(0,1fr)}
   #history{border-right:0;border-bottom:1px solid var(--line)}
   .cols{grid-template-columns:1fr}
+  /* Board in a half-width window (TV, side by side with Teams): picks shrink to a
+     short strip of one-line rows without photos, so the player cards stay in view. */
+  body:not(.teams) .shell{grid-template-rows:92px minmax(0,1fr)}
+  body:not(.teams) #history h2{padding:4px 12px}
+  body:not(.teams) #log li{grid-template-columns:minmax(0,1fr) auto;padding:1px 12px}
+  body:not(.teams) #log li>.ph,body:not(.teams) #log li>.ini{display:none}
+  body:not(.teams) #log li>span:nth-child(2){display:flex;gap:8px;align-items:baseline;min-width:0}
+  body:not(.teams) #log .hp small{display:inline;margin-left:6px}
 }
+/* Picks hidden on the board (header button, ?picks=off); Teams always shows them. */
+body.nopicks:not(.teams) #history{display:none}
+body.nopicks:not(.teams) .shell{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 
 /* ---------- voice: header indicator and the banner every screen shows ---------- */
 button.voice{padding:6px 10px;font-size:12.5px;white-space:nowrap}
@@ -241,8 +252,16 @@ button.voice.off{color:var(--muted)}
 #block .bstats tr.none td{color:var(--muted)}
 #block .bact{display:flex;gap:6px}
 @media(max-width:900px){
-  #block{grid-template-columns:56px minmax(0,1fr)}
-  #block .ph,#block .ini{width:56px;height:56px}
+  /* Stats stay beside the name; Sold/Clear move under it. */
+  #block{grid-template-columns:56px minmax(0,1fr) auto;grid-template-areas:"ph who stats" "ph act stats";
+    row-gap:6px;padding:8px 12px}
+  #block>.ph,#block>.ini{grid-area:ph;width:56px;height:56px}
+  #block .bwho{grid-area:who}
+  #block .bstatwrap{grid-area:stats}
+  #block .bact{grid-area:act}
+  #block .bact button{padding:4px 12px}
   #block .bname{font-size:22px}
-  #block .bstatwrap,#block .bact{grid-column:1/-1}
+}
+@media(max-width:640px){
+  #block{grid-template-columns:56px minmax(0,1fr);grid-template-areas:"ph who" "stats stats" "act act"}
 }

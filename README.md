@@ -234,6 +234,27 @@ veel mee, verhoog dan `--threshold` (standaard 0.5). Knipt hij zinnen te vroeg a
 verhoog dan `--silence-ms` (standaard 400). Werkt de listener niet of crasht hij,
 dan blijft de commandobalk gewoon werken.
 
+## Noodexport naar Excel
+
+Loopt de app vast of werkt ze op draftavond niet vlot genoeg, dubbelklik dan
+`export.bat`. Dat leest `data\draft.db` rechtstreeks (read-only) en opent
+`exports\LoW draft <datum> <uur>.xlsx`. De app hoeft daarvoor niet te draaien, en
+een app die nog openstaat merkt er niets van. Elke pick staat in de database
+zodra hij gemaakt is, dus de export heeft alles tot de laatste geslaagde pick.
+
+De sheet heeft de vorm van de oude draftsheets: per team een prijs- en een
+spelerskolom, de budgetrij van 200, de picks, en onderaan Uitgegeven, Resterend
+en Max bid als formules. Zo kan je in Excel verder draften. Het tabblad "Picks"
+geeft de picks in volgorde.
+
+Wil je de exacte opmaak van de originele sheet, zet die dan als
+`data\draft_template.xlsx` (of geef `--template <bestand>` mee). Het script kopieert
+dan het laatste tabblad "Auction <jaar>" naar een nieuw tabblad voor dit jaar,
+zet de huidige teamnamen erin en vervangt de picks. Opmaak en formules blijven.
+
+Test het eens voor de draft, bv. met een paar picks in de demo-database:
+`py tool\export_xlsx.py --db data\demo.db --open`.
+
 ## Categorieën aanpassen
 
 In `tool/config.json` staat elke categorie op 1. Zet er een op 0 om een

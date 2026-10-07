@@ -24,3 +24,6 @@ _legacy/
 
 # Virtual environment
 .venv/
+
+# Draft exports (export.bat)
+exports/

@@ -120,3 +120,10 @@
 - **Checks:** Live ESPN-call (bron: `lm-api-reads.fantasy.espn.com/.../fba/seasons/2027/.../leaguedefaults/3?view=kona_player_info`, 2026-10-02): hetzelfde antwoord bevat statline `002026` met de echte 2025-26 totalen (SGA 2117 PTS / 68 GP). 330 van 348 spelers hebben hem, de rest is rookie of speelde niet.
 - **Keuze:** Geen extra request of bron. Een tabel met 2 rijen per wedstrijd (2025-26, 2026-27p), met GP plus de actieve categorieën uit `config.json`. Rookies krijgen "–". Vorig seizoen telt niet mee in de waardering. Review (quick): layout-overflow tussen 900 en 1200px, hover op de rijen en de FRD gepatcht.
 - **Aanpassingen:** `fetch_espn.py` (`LY_*`-kolommen), `build_values.py` (`last`), `/api/players` (`last`, `categories`), het blok in `app.js`/`app.css`, de FRD en tests (337 groen). `data/espn.csv` is ververst. Plan: `_bmad-output/plan-block-stats.md`.
+
+## 2026-10-07 — Noodexport naar Excel
+
+- **Probleem:** Als de app vastloopt tijdens de draft, moet de stand eruit als Excel in de vorm van de oude draftsheet. Een exportknop in de app werkt dan net niet.
+- **Opties:** Knop in de app, automatisch een xlsx na elke pick (Excel vergrendelt een open bestand), een parallelle sheet bijhouden, of een los script. Elke pick staat meteen vast in SQLite, dus een los script kan zonder de app.
+- **Keuze:** Een los script dat `draft.db` read-only leest, gestart via `export.bat`. Het bouwt de layout van 2019-2025 zelf op (zoals `parse_history.py` die leest), met formules voor Uitgegeven, Resterend en Max bid. Optioneel vult het de originele sheet als template, want die staat niet in de projectmap.
+- **Aanpassingen:** `tool/export_xlsx.py`, `export.bat`, `tests/test_export.py` (5 tests, 342 groen), README-sectie, `exports/` in `.gitignore`. De formules zijn nagerekend in Excel op de huidige `draft.db`.
